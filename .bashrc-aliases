@@ -1,0 +1,131 @@
+# choices
+my_active_nvim="nvim"
+# alias nvim='my_active_nvim'
+# alias vim='$my_active_nvim'
+# alias vi='$my_active_nvim'
+#terminal="alacritty"
+#TERMINAL="alacritty"
+hdd="/mnt/hdd"
+obsidot="/mnt/hdd/st/obsi/vault_bank/my-dotfiles"
+fastnote="$obsidot/fast-note.md"
+# quotes="/mnt/e/st/obsi/vault_bank/my-dotfiles/quotes.txt"
+quotes="/mnt/hdd/st/obsi/vault_bank/my-dotfiles/quotes.txt"
+
+
+# nvim things
+alias nbp='$my_active_nvim ~/dotfiles/.bashrc-personal'
+alias npb=' $my_active_nvim ~/dotfiles/.bashrc-personal'
+alias nb=' $my_active_nvim ~/dotfiles/.bashrc'
+alias nv='$my_active_nvim ~/dotfiles/.config/nvim/init.lua'
+alias nqtile='$my_active_nvim ~/.config/qtile/config.py'
+alias nxmo='$my_active_nvim ~/.xmonad/xmonad.hs'
+alias nhyper='$my_active_nvim  ~/.config/hypr/hyprland.conf'
+alias nalac='$my_active_nvim ~/.config/alacritty/alacritty.toml'
+alias nkit='$my_active_nvim ~/.config/kitty/kitty.conf'
+alias nsx='$my_active_nvim ~/.config/qtile/sxhkd/sxhkdrc'
+alias nlv='$my_active_nvim ~/.config/lvim/config.lua'
+
+
+# sourcing
+alias sb='source ~/.bashrc'
+
+# pacman & aur helpers
+alias inst='sudo pacman -S'
+alias isnt='sudo pacman -S'
+alias pinst='paru -S'
+alias yinst='yay -S'
+alias search='pacman -Ss'
+alias ysearch='yay -Ss'
+alias psearch='paru -Ss'
+
+# faster
+alias cd..='cd ..'
+alias cd.='cd ..'
+alias cd~='cd ~'
+alias cdc='cd ~/.config ;ls'
+alias cdh='cd ~'
+# alias cdvb='cd /mnt/e/st/obsi/vault_bank'
+# alias cdcore='cd /mnt/e/hcore'
+alias cdcore='cd /mnt/hdd/hcore'
+# alias cdsol="cd /mnt/e/solve"
+# alias cdobsi="cd /mnt/e/st/obsi/vault_bank"
+# alias cdesk="cd /mnt/c/Users/dt/Desktop"
+alias ls='ls -lath --color=auto'
+# alias ter='$terminal'
+alias note="nvim $fastnote"
+alias file="thunar ."
+alias lv="lvim"
+alias xcopy="xclip -sel clip"
+alias ndswap="rm ~/.local/state/nvim/swap/*" # delete swap
+alias dtlog="sudo pkill -u dt"
+# alias fzf='fzf --preview "bat --color=always --style=numbers --line-range=:500 {}"'
+alias removeneovim=""
+alias camfix='sudo rmmod v4l2loopback ; sudo modprobe v4l2loopback'
+alias td='termdown '
+
+
+# listings of important files
+alias lsalac='cd ~/.config/alacritty ; ls'
+alias nvls='cd ~/.config/nvim ; ls'
+alias lsqtile='cd ~/.config/qtile ; ls'
+alias lsxmo='cd ~/.xmonad ; ls'
+alias lshyper='cd ~/.config/hypr ; ls'
+alias lssx='nvim ~/.config/qtile/sxhkd/sxhkdrc ; ls'
+alias lslv='cd ~/.config/lvim ; ls'
+alias lskit='cd ~/.config/kitty ; ls'
+
+# alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c" # bugswriter version
+alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' && echo"
+# alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | wl-copy" # wl-clipboard is huge space
+# alias rondo="cdcore ; \ls | shuf | head -n 1" # so long my love
+alias wp="cd /mnt/e/Favorites; \ls | shuf | head -n 1" # name me a random bg img
+
+
+alias now='mkdir "$(date +'%I%p-%Y-%m-%d')"'
+# alias bakacmux='tmux new -s baka -d && tmux rename-window -t baka:0 "main" && tmux new-window -t baka:1 -d && tmux new-window -t baka:2 -d && tmux new-window -t baka:3 -d && tmux attach -t baka'
+alias bakam='
+tmux new-session -s baka -d;                   # Create session detached
+tmux rename-window -t baka:0 "extra";           # Rename window 0
+# tmux send-keys -t baka:0 "nvim" C-m;           # Run command in window 0
+
+tmux new-window -t baka:1 -n "doc";         # Create window 1 with name
+tmux send-keys -t baka:1 "cd '/mnt/e/doc' ; nvim ." C-m;      # Run command in window 1
+
+tmux new-window -t baka:2 -n "grep";         # Create window 2 with name
+tmux send-keys -t baka:2 "cdvb; nvim ." C-m;            # Run command in window 2
+
+tmux new-window -t baka:3 -n "notes";           # Create window 3 with name
+tmux send-keys -t baka:3 "cdesk; nvim new.md" C-m; # Run command in window 3
+
+tmux new-window -t baka:4 -n "quotes";           # Create window 4 with name
+tmux send-keys -t baka:4 "nvim /mnt/e/st/obsi/vault_bank/my-dotfiles/quotes.txt" C-m; # Run command in window 4
+
+tmux attach -t baka;                           # Attach to session
+'
+alias bakat='tmux a -t baka'
+
+# nvim config swticher
+alias nvim-lazy="NVIM_APPNAME=LazyVim nvim"
+alias nvim-kick="NVIM_APPNAME=KickStart nvim"
+alias nvim-chad="NVIM_APPNAME=NvChad nvim"
+alias nvim-astro="NVIM_APPNAME=AstroNvim nvim"
+alias one="NVIM_APPNAME=one nvim"
+alias two="NVIM_APPNAME=two nvim"
+nvims() {
+  local items=("default" "KickStart" "LazyVim" "NvChad" "AstroNvim" "one" "two")
+  local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
+  if [[ -z "$config" ]]; then
+    echo "Nothing selected"
+    return 0
+  elif [[ "$config" == "default" ]]; then
+    config=""
+  fi
+  NVIM_APPNAME="$config" nvim "$@"
+}
+bind '"\C-w":"nvims\n"'
+
+# alias cdoc="cd /mnt/e/doc/ ;nvim a.md"
+# alias csh="cd /mnt/e/doc/ ;nvim b.cs"
+# alias cnote="nvim /mnt/e/st/obsi/vault_bank/my-dotfiles/new.md"
+# alias dr="doom run"
+

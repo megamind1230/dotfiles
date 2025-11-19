@@ -1,0 +1,84 @@
+export MANPAGER='nvim +Man!'
+export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
+# bash prompt theming
+PS1='\e[3;33m(\@)\e[m\u:\h\e[1;36m[\w]\e[m$ '
+
+
+# for lunar vim 
+export PATH=/home/dt/.local/bin:$PATH
+# for dotnet
+export PATH=/home/dt/.dotnet:$PATH
+# for doom
+# export PATH=/home/dt/.config/emacs/bin:$PATH
+export PATH="$HOME/.config/emacs/bin:$PATH"
+export PATH="$HOME/.emacs.d/bin:$PATH"
+# autostart with bash
+# cal; date
+
+crondo() { # rondo with copy
+    # go to hcore
+    cd /mnt/hdd/hcore
+    local item
+    
+    # Use find to handle filenames with special characters more safely
+    item=$(find . -maxdepth 1 -type f -printf '%f\n' | shuf -n 1)
+    
+    if [[ -z "$item" ]]; then
+        echo "No files found in directory"
+        return 1
+    fi
+    
+    echo "$item"
+    read -p "Move to Desktop? (y/N): " response
+    
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        # mv -- "$item" "/mnt/c/Users/dt/Desktop"
+        mv -- "$item" "/home/dt/Desktop"
+        echo "Moved '$item' to Desktop"
+    else
+        # mv -- "$item" "/mnt/e/hcoreExtend"
+        mv -- "$item" "/mnt/hdd/hcoreExtend"
+        echo "Moved '$item' to /mnt/hdd/hcoreExtend"
+    fi
+    echo "-----------------------"
+
+    crondo
+}
+
+
+PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+
+
+function print_random_quote() {
+    if [ -f "$quotes" ]; then
+        # Get the number of lines in the file
+        local num_lines=$(wc -l < "$quotes")
+        # Generate a random line number
+        local random_line=$((RANDOM % num_lines + 1))
+        # Print the random line
+        sed -n "${random_line}p" "$quotes"
+    else
+        echo "quotes.txt not found in your home directory."
+    fi
+}
+
+# uncommnet to Call the function when bash starts
+# print_random_quote
+
+# fzf in tldr pages
+fzft() {
+  local cmd
+  cmd=$(find ~/.local/share/tldr/pages -type f -name "*.md" | sed 's|.*/||; s|\.md||' | fzf --preview "tldr {1}" --preview-window=right:70%)
+  [ -n "$cmd" ] && tldr "$cmd"
+}
+c() {
+    read -p "Enter cht.sh query: " query
+    [[ -z "$query" ]] && return 1
+    cht.sh $query | sed 's/\x1b\[[0-9;]*m//g' | nvim -
+}
+
+# vi keybindings in bash
+# set -o vi
+# bind -m vi-command 'Control-l: clear-screen'
+# bind -m vi-insert 'Control-l: clear-screen'
+
