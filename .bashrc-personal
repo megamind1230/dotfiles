@@ -12,6 +12,10 @@ export PATH=/home/dt/.dotnet:$PATH
 # export PATH=/home/dt/.config/emacs/bin:$PATH
 export PATH="$HOME/.config/emacs/bin:$PATH"
 export PATH="$HOME/.emacs.d/bin:$PATH"
+# add scripts folder to my path
+export PATH="/home/dt/scripts/:$PATH"
+
+
 # autostart with bash
 # cal; date
 

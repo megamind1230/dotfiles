@@ -554,3 +554,34 @@ local function setup_dynamic_statusline()
 end
 
 setup_dynamic_statusline()
+
+-- "let mapleader =","
+-- "map ,, :keepp /<++><CR>ca<
+-- "imap ,, <esc>:keepp /<++><CR>ca<
+-- "set title
+-- "set bg=light
+-- "set noshowmode
+-- "set noruler
+-- "set laststatus=0
+-- "set noshowcmd
+--
+-- 	"nnoremap c "_c
+-- 	"set wildmode=longest,list,full "Enable autocompletion:
+-- 	"autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o " Disables automatic commenting on newline:
+-- 	"vnoremap . :normal .<CR> " Perform dot commands over visual blocks:
+-- 	"map <C-h> <C-w>h
+-- 	"map <C-j> <C-w>j
+-- 	"map <C-k> <C-w>k
+-- 	"map <C-l> <C-w>l
+--
+-- 	"map Q gq " Replace ex mode with gq
+--
+-- 	"nnoremap S :%s//g<Left><Left> " Replace all is aliased to S.
+--
+-- "" Save file as sudo on files that require root permission
+-- "	cabbrev w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
+--
+-- "" Turns off highlighting on the bits of code that are changed, so the line that is changed is highlighted but the actual text that has changed stands out on the line and is readable.
+-- "if &diff
+-- "    highlight! link DiffText MatchParen
+-- "endif
