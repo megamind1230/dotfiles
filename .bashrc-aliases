@@ -19,11 +19,12 @@ alias nb=' $my_active_nvim ~/dotfiles/.bashrc'
 alias nv='$my_active_nvim ~/dotfiles/.config/nvim/init.lua'
 alias nqtile='$my_active_nvim ~/.config/qtile/config.py'
 alias nxmo='$my_active_nvim ~/.xmonad/xmonad.hs'
-alias nhyper='$my_active_nvim  ~/.config/hypr/hyprland.conf'
+alias nhyper='$my_active_nvim  ~/dotfiles/.config/hypr/hyprland.conf'
 alias nalac='$my_active_nvim ~/.config/alacritty/alacritty.toml'
 alias nkit='$my_active_nvim ~/.config/kitty/kitty.conf'
 alias nsx='$my_active_nvim ~/.config/qtile/sxhkd/sxhkdrc'
 alias nlv='$my_active_nvim ~/.config/lvim/config.lua'
+alias cconf='$my_active_nvim ~/dotfiles/'
 
 
 # sourcing
@@ -58,6 +59,7 @@ alias lv="lvim"
 alias xcopy="xclip -sel clip"
 alias ndswap="rm ~/.local/state/nvim/swap/*" # delete swap
 alias dtlog="sudo pkill -u dt"
+alias nap="systemctl suspend"
 # alias fzf='fzf --preview "bat --color=always --style=numbers --line-range=:500 {}"'
 alias removeneovim=""
 alias camfix='sudo rmmod v4l2loopback ; sudo modprobe v4l2loopback'
@@ -129,3 +131,5 @@ bind '"\C-w":"nvims\n"'
 # alias cnote="nvim /mnt/e/st/obsi/vault_bank/my-dotfiles/new.md"
 # alias dr="doom run"
 
+# backup dotfiles folder
+alias backup-dotfiles='cp -r ~/dotfiles "/mnt/hdd/dotfiles-$(date +%d-%m-%y-backup)"'

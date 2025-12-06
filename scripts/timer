@@ -1,0 +1,6 @@
+#!/bin/bash
+
+read -p "Enter duration (e.g., 5min, 1h): " duration; read -p "Enter task name: " task; start_time=$(date '+%a%d-%-m-%Y @ %I:%M%p'); termdown "$duration" && paplay ~/pigeon.mp3 && end_time=$(date '+@ %I:%M%p') && echo -e "$task\t\t\t|$start_time\t\t\t|$end_time\t\t\t|$duration" >> /mnt/hdd/tasks-log.txt
+# read -p "Enter duration (e.g., 5min, 1h): " duration; read -p "Enter task name: " task; start_time=$(date '+%a%d-%-m-%Y @ %I:%M%p'); termdown "$duration" && paplay ~/pigeon.mp3 && end_time=$(date '+@ %I:%M%p') && echo "$task | $start_time | $end_time | $duration" >> /mnt/hdd/tasks-log.txt
+
+# read -p "Enter duration (e.g., 5min, 1h): " duration; read -p "Enter task name: " task; start_time=$(date '+%a %d-%-m-%Y @ %I:%M%p'); termdown "$duration" && paplay ~/pigeon.mp3 && end_time=$(date '+%a %d-%-m-%Y @ %I:%M%p') && echo "$task | $start_time | $end_time" >> /mnt/hdd/tasks-log.txt
