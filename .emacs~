@@ -45,15 +45,6 @@
 (horizontal-scroll-bar-mode -1)
 (menu-bar-mode -1)
 
-;; Remove window title bar decorations (frame)
-(setq-default frame-title-format nil)  ; or use a simple title
-(setq frame-title-format '("%b"))        ; empty title
-;; For X11/Linux
-(when (window-system)
-  ;; Set window decorations (if supported by window manager)
-  (add-to-list 'default-frame-alist '(undecorated . t))
-  (add-to-list 'default-frame-alist '(border-width . 0)))
-
 ;;idk whether to enable this block or not
 ;; Keep auto-save and backup files in one flat directory
 ;; (instead of next to the original files)
@@ -104,6 +95,7 @@
 (require 'evil)
 (evil-mode 1)
 
+
 ;; enable which-key mode
 (which-key-mode 1)
 
@@ -152,13 +144,10 @@
 ;; smartly wrap lines
 (visual-line-mode 1)
 
-;; Always follow symlinks, no prompt
-(setq vc-follow-symlinks t)
-
-;; scratch buffer as default on startup, with no dashboard
+;; scratch buffer as default on startup
 (defun my-emacs-startup ()
   "Start Emacs with *scratch* buffer."
   (get-buffer-create "*scratch*"))
+
 (setq initial-buffer-choice #'my-emacs-startup)
 (setq dashboard-set-init-info nil)
-(setq initial-major-mode 'org-mode)
