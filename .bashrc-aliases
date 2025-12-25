@@ -8,23 +8,23 @@ my_active_nvim="nvim"
 hdd="/mnt/hdd"
 obsidot="/mnt/hdd/st/obsi/vault_bank/my-dotfiles"
 fastnote="$obsidot/fast-note.md"
-# quotes="/mnt/e/st/obsi/vault_bank/my-dotfiles/quotes.txt"
-quotes="/mnt/hdd/st/obsi/vault_bank/my-dotfiles/quotes.txt"
+# quotes="/mnt/e/st/obsi/vault_bank/my-quotes.txt"
+quotes="/mnt/hdd/st/obsi/vault_bank/my-quotes.txt"
 
 
 # nvim things
-alias nbp='$my_active_nvim ~/dotfiles/.bashrc-personal'
-alias npb=' $my_active_nvim ~/dotfiles/.bashrc-personal'
-alias nb=' $my_active_nvim ~/dotfiles/.bashrc'
-alias nv='$my_active_nvim ~/dotfiles/.config/nvim/init.lua'
+alias nbp='$my_active_nvim ~/.bashrc-personal'
+alias npb=' $my_active_nvim ~/.bashrc-personal'
+alias nb=' $my_active_nvim ~/.bashrc'
+alias nv='$my_active_nvim ~/.config/nvim/init.lua'
 alias nqtile='$my_active_nvim ~/.config/qtile/config.py'
 alias nxmo='$my_active_nvim ~/.xmonad/xmonad.hs'
-alias nhyper='$my_active_nvim  ~/dotfiles/.config/hypr/hyprland.conf'
+alias nhyper='$my_active_nvim  ~/.config/hypr/hyprland.conf'
 alias nalac='$my_active_nvim ~/.config/alacritty/alacritty.toml'
 alias nkit='$my_active_nvim ~/.config/kitty/kitty.conf'
 alias nsx='$my_active_nvim ~/.config/qtile/sxhkd/sxhkdrc'
 alias nlv='$my_active_nvim ~/.config/lvim/config.lua'
-alias cconf='$my_active_nvim ~/dotfiles/'
+alias cconf='$my_active_nvim ~/'
 
 
 # sourcing
@@ -100,7 +100,7 @@ tmux new-window -t baka:3 -n "notes";           # Create window 3 with name
 tmux send-keys -t baka:3 "cdesk; nvim new.md" C-m; # Run command in window 3
 
 tmux new-window -t baka:4 -n "quotes";           # Create window 4 with name
-tmux send-keys -t baka:4 "nvim /mnt/e/st/obsi/vault_bank/my-dotfiles/quotes.txt" C-m; # Run command in window 4
+tmux send-keys -t baka:4 "nvim /mnt/e/st/obsi/vault_bank/my-quotes.txt" C-m; # Run command in window 4
 
 tmux attach -t baka;                           # Attach to session
 '
@@ -128,7 +128,7 @@ bind '"\C-w":"nvims\n"'
 
 # alias cdoc="cd /mnt/e/doc/ ;nvim a.md"
 # alias csh="cd /mnt/e/doc/ ;nvim b.cs"
-# alias cnote="nvim /mnt/e/st/obsi/vault_bank/my-dotfiles/new.md"
+# alias cnote="nvim /mnt/e/st/obsi/vault_bank/my-new.md"
 # alias dr="doom run"
 
 # backup dotfiles folder

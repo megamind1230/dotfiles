@@ -10,34 +10,33 @@
   (package-refresh-contents))
 
 ;; setup theme
-(load-theme 'leuven-dark)
-
+;;(load-theme 'leuven-dark)
 ;; shift+arrow to change window
-(windmove-default-keybindings)
+;;(windmove-default-keybindings)
 
 ;; save cursor place in killed files
-(save-place-mode 1)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(cape consult corfu corfu-terminal evil lv orderless use-package
-          vertico which-key)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;;(save-place-mode 1)
+;;(custom-set-variables
+;; ;; custom-set-variables was added by Custom.
+;; ;; If you edit it by hand, you could mess it up, so be careful.
+;; ;; Your init file should contain only one such instance.
+;; ;; If there is more than one, they won't work right.
+;; '(package-selected-packages
+;;   '(cape consult corfu corfu-terminal evil lv orderless use-package
+;;          vertico which-key)))
+;;(custom-set-faces
+;; ;; custom-set-faces was added by Custom.
+;; ;; If you edit it by hand, you could mess it up, so be careful.
+;; ;; Your init file should contain only one such instance.
+;; ;; If there is more than one, they won't work right.
+;; )
 
-;; setup completion
-(vertico-mode)
-(setq completion-styles '(orderless basic))
-(global-set-key (kbd "C-x b") 'consult-buffer)
+;;;; setup completion
+;;(vertico-mode)
+;;(setq completion-styles '(orderless basic))
+;;(global-set-key (kbd "C-x b") 'consult-buffer)
 
-;;i installed which-key gnu
+;;;;i installed which-key gnu
 
 ;; no menu/tool/scroll bars
 (tool-bar-mode -1)
@@ -45,14 +44,14 @@
 (horizontal-scroll-bar-mode -1)
 (menu-bar-mode -1)
 
-;; Remove window title bar decorations (frame)
-(setq-default frame-title-format nil)  ; or use a simple title
-(setq frame-title-format '("%b"))        ; empty title
-;; For X11/Linux
-(when (window-system)
-  ;; Set window decorations (if supported by window manager)
-  (add-to-list 'default-frame-alist '(undecorated . t))
-  (add-to-list 'default-frame-alist '(border-width . 0)))
+;;;; Remove window title bar decorations (frame)
+;;(setq-default frame-title-format nil)  ; or use a simple title
+;;(setq frame-title-format '("%b"))        ; empty title
+;;;; For X11/Linux
+;;(when (window-system)
+;;  ;; Set window decorations (if supported by window manager)
+;;  (add-to-list 'default-frame-alist '(undecorated . t))
+;;  (add-to-list 'default-frame-alist '(border-width . 0)))
 
 ;;idk whether to enable this block or not
 ;; Keep auto-save and backup files in one flat directory
@@ -113,18 +112,18 @@
 
 ;; installed corfu / corfu-terminal / cape
 ;; Enable indentation and completion using the TAB key.
-(setq tab-always-indent 'complete)
+;;(setq tab-always-indent 'complete)
 ;; Make the completion suggest file paths.
-(add-hook 'completion-at-point-functions #'cape-file)
+;;(add-hook 'completion-at-point-functions #'cape-file)
 ;; Activate in buffer completion everywhere.
-(global-corfu-mode)
+;;(global-corfu-mode)
 ;; enable corfu in terminal.
 ;; This is needed until child frame support for terminal Emacs arrives.
-(unless (display-graphic-p) (corfu-terminal-mode +1))
+;;(unless (display-graphic-p) (corfu-terminal-mode +1))
 ;; For manual corfu, use SPC to add orderless separator.
-(keymap-set corfu-map "SPC"  'corfu-insert-separator)
+;;(keymap-set corfu-map "SPC"  'corfu-insert-separator)
 ;; show completion automatically after a short delay
-(setq corfu-auto t)
+;;(setq corfu-auto t)
 
 ;; ;; gcc AND gc to comment/uncomment
 ;; Comment region with 'gc' and comment line with 'gcc'
