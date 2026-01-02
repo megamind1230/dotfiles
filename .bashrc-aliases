@@ -13,9 +13,10 @@ quotes="/mnt/hdd/st/obsi/vault_bank/my-quotes.txt"
 
 
 # nvim things
+alias nb=' $my_active_nvim ~/.bashrc'
+alias nba=' $my_active_nvim ~/.bashrc-aliases'
 alias nbp='$my_active_nvim ~/.bashrc-personal'
 alias npb=' $my_active_nvim ~/.bashrc-personal'
-alias nb=' $my_active_nvim ~/.bashrc'
 alias nv='$my_active_nvim ~/.config/nvim/init.lua'
 alias nqtile='$my_active_nvim ~/.config/qtile/config.py'
 alias nxmo='$my_active_nvim ~/.xmonad/xmonad.hs'
@@ -29,6 +30,9 @@ alias cconf='$my_active_nvim ~/'
 
 # sourcing
 alias sb='source ~/.bashrc'
+
+# anki
+alias anki='/home/dt/anki-launcher-25.09-linux/anki'
 
 # pacman & aur helpers
 alias inst='sudo pacman -S'
@@ -60,6 +64,7 @@ alias xcopy="xclip -sel clip"
 alias ndswap="rm ~/.local/state/nvim/swap/*" # delete swap
 alias dtlog="sudo pkill -u dt"
 alias nap="systemctl suspend"
+alias die="shutdown -h now"
 # alias fzf='fzf --preview "bat --color=always --style=numbers --line-range=:500 {}"'
 alias removeneovim=""
 alias camfix='sudo rmmod v4l2loopback ; sudo modprobe v4l2loopback'
@@ -112,7 +117,7 @@ alias nvim-kick="NVIM_APPNAME=KickStart nvim"
 alias nvim-chad="NVIM_APPNAME=NvChad nvim"
 alias nvim-astro="NVIM_APPNAME=AstroNvim nvim"
 alias one="NVIM_APPNAME=one nvim"
-alias two="NVIM_APPNAME=two nvim"
+# alias two="NVIM_APPNAME=two nvim"
 nvims() {
   local items=("default" "KickStart" "LazyVim" "NvChad" "AstroNvim" "one" "two")
   local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
