@@ -25,6 +25,7 @@ alias nalac='$my_active_nvim ~/.config/alacritty/alacritty.toml'
 alias nkit='$my_active_nvim ~/.config/kitty/kitty.conf'
 alias nsx='$my_active_nvim ~/.config/qtile/sxhkd/sxhkdrc'
 alias nlv='$my_active_nvim ~/.config/lvim/config.lua'
+alias nwords='$my_active_nvim /mnt/hdd/words.txt'
 alias cconf='$my_active_nvim ~/'
 
 
@@ -43,7 +44,12 @@ alias search='pacman -Ss'
 alias ysearch='yay -Ss'
 alias psearch='paru -Ss'
 
-# faster
+## faster
+# alias date="date +'%d-%m-%Y %a @ %r'"
+  # backup dotfiles folder
+alias backup-dotfiles='cp -r ~/dotfiles "/mnt/hdd/dotfiles-$(date +%d-%m-%y-backup)"'
+alias nf='nvim $(fzf)'
+alias fkill="ps -eo pid,comm | sed 1d | fzf -m | awk '{print \$1}' | xargs kill -9"
 alias cd..='cd ..'
 alias cd.='cd ..'
 alias cd~='cd ~'
@@ -112,10 +118,10 @@ tmux attach -t baka;                           # Attach to session
 alias bakat='tmux a -t baka'
 
 # nvim config swticher
-alias nvim-lazy="NVIM_APPNAME=LazyVim nvim"
-alias nvim-kick="NVIM_APPNAME=KickStart nvim"
-alias nvim-chad="NVIM_APPNAME=NvChad nvim"
-alias nvim-astro="NVIM_APPNAME=AstroNvim nvim"
+alias nvimlazy="NVIM_APPNAME=LazyVim nvim"
+alias nvimkick="NVIM_APPNAME=KickStart nvim"
+alias nvimchad="NVIM_APPNAME=NvChad nvim"
+alias nvimastro="NVIM_APPNAME=AstroNvim nvim"
 alias one="NVIM_APPNAME=one nvim"
 # alias two="NVIM_APPNAME=two nvim"
 nvims() {
@@ -136,5 +142,17 @@ bind '"\C-w":"nvims\n"'
 # alias cnote="nvim /mnt/e/st/obsi/vault_bank/my-new.md"
 # alias dr="doom run"
 
-# backup dotfiles folder
-alias backup-dotfiles='cp -r ~/dotfiles "/mnt/hdd/dotfiles-$(date +%d-%m-%y-backup)"'
+
+
+# RUN MY CUSTOME SCRIPTS .. triggered with ctrl b
+scriptsRun() {
+  local script
+
+  script=$((ls ~/scripts/) | fzf | awk '{print $9}')
+
+  [[ -z "$script" ]] && return 0
+
+  read -p "Run $script? (y/N) " ans
+  [[ $ans == y ]] && "$script"
+}
+bind '"\C-b":"scriptsRun\n"'

@@ -1,0 +1,9 @@
+#!/bin/bash
+# Script with fuzzel
+word=$(echo "" | fuzzel --dmenu --prompt="Add word: ")
+meaning=$(echo "" | fuzzel --dmenu --prompt="Add meaning: ")
+
+if [[ -n "$word" && -n "$meaning" ]]; then
+    echo "$word | $meaning" >> "/mnt/hdd/words.txt"
+    notify-send "Word Added" "'$word' added to dictionary"
+fi

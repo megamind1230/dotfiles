@@ -279,7 +279,7 @@
 
 
 ;; --------------------
-;; drag stuff.. to alt up/down lines
+;; drag stuff
 ;; --------------------
 (require 'drag-stuff)
 (drag-stuff-global-mode 1)

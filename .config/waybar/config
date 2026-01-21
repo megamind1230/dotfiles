@@ -1,5 +1,9 @@
 {
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["tray", "network", "pulseaudio"]
+    "modules-right": ["tray", "network", "pulseaudio"],
+    "clock": {
+        "format": "{:%I:%M %p}",
+        "tooltip-format": "{:%A, %B %d, %Y %I:%M %p}"
+    }
 }

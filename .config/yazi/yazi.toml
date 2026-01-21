@@ -72,11 +72,7 @@ rules = [
         "reveal",
     ] },
     # Pdf
-    { mime = "application/pdf", use = [
-        "zathura",
-        "open",
-        "reveal",
-    ] },
+    { mime = "application/pdf", use = "okular" },
     # Image
     { mime = "image/*", use = [
         "open",

@@ -86,3 +86,16 @@ c() {
 # bind -m vi-command 'Control-l: clear-screen'
 # bind -m vi-insert 'Control-l: clear-screen'
 
+# Show random word on terminal startup
+BLACK="\e[30m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+MAGENTA="\e[35m"
+CYAN="\e[36m"
+WHITE="\e[37m"
+RESET="\e[0m"
+if [[ -f /mnt/hdd/words.txt ]] && [[ -s /mnt/hdd/words.txt ]]; then
+  echo -e "${MAGENTA}$(shuf -n 1 /mnt/hdd/words.txt)${RESET}"
+fi
