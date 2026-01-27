@@ -73,3 +73,4 @@ map("n","<leader>nv", ":e $HOME/.config/nvim<Cr>", {desc = "go config"}) --go co
 --
     -- -- Better J behavior
 -- vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines and keep cursor position" })
+

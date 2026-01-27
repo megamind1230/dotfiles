@@ -135,6 +135,8 @@
 ;; Using evil-mode style keybindings (recommended approach)
 ;; If you're using evil-mode:
 (with-eval-after-load 'evil
+  ;;jk as esc
+  (define-key evil-insert-state-map (kbd "j k") 'evil-normal-state)
   ;; Make gc an operator that works with motions (like gcap, gc5j, etc.)
   (evil-define-operator my/evil-comment-operator (beg end)
     "Comment or uncomment region."
@@ -254,6 +256,21 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("51ec7bfa54adf5fff5d466248ea6431097f5a18224788d0bd7eb1257a4f7b773"
+     "36d4b9573ed57b3c53261cb517eef2353058b7cf95b957f691f5ad066933ae84"
+     "0f9a1b7a0f1d09544668297c1f04e5a5452ae1f4cf69f11b125f4cff1d54783d"
+     "efcecf09905ff85a7c80025551c657299a4d18c5fcfedd3b2f2b6287e4edd659"
+     "57a29645c35ae5ce1660d5987d3da5869b048477a7801ce7ab57bfb25ce12d3e"
+     "833ddce3314a4e28411edf3c6efde468f6f2616fc31e17a62587d6a9255f4633"
+     "d89e15a34261019eec9072575d8a924185c27d3da64899905f8548cbd9491a36"
+     "2b0fcc7cc9be4c09ec5c75405260a85e41691abb1ee28d29fcd5521e4fca575b"
+     "00445e6f15d31e9afaa23ed0d765850e9cd5e929be5e8e63b114a3346236c44c"
+     "285d1bf306091644fb49993341e0ad8bafe57130d9981b680c1dbd974475c5c7"
+     "830877f4aab227556548dc0a28bf395d0abe0e3a0ab95455731c9ea5ab5fe4e1"
+     "7fea145741b3ca719ae45e6533ad1f49b2a43bf199d9afaee5b6135fd9e6f9b8"
+     "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5"
+     default))
  '(package-selected-packages '(drag-stuff evil solarized-theme)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -284,3 +301,28 @@
 (require 'drag-stuff)
 (drag-stuff-global-mode 1)
 (drag-stuff-define-keys)
+
+;; --------------------
+;; search selected in browser, chatgpt
+;; --------------------
+(defun my/search-selected-text ()
+  (interactive)
+  (if (use-region-p)
+      (browse-url
+       (concat "https://duckduckgo.com/?q="
+               (url-hexify-string
+                (buffer-substring-no-properties
+                 (region-beginning)
+                 (region-end)))))
+    (message "No region selected")))
+(defun my/ask-chatgpt-browser ()
+  "Send selected text to ChatGPT in browser."
+  (interactive)
+  (if (use-region-p)
+      (let ((query (buffer-substring-no-properties
+                    (region-beginning)
+                    (region-end))))
+        (browse-url
+         (concat "https://chat.openai.com/?q="
+                 (url-hexify-string query))))
+    (message "No region selected")))

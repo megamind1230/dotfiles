@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# requires bc to be installed
+expr=$(printf "" | fuzzel --dmenu --prompt "calc: ")
+
+[ -z "$expr" ] && exit 0
+
+result=$(echo "$expr" | bc -l 2>/dev/null)
+
+[ -z "$result" ] && exit 1
+
+echo "$result" | wl-copy
+notify-send "Calculator" "$expr = $result"

@@ -49,6 +49,10 @@ alias psearch='paru -Ss'
   # backup dotfiles folder
 alias backup-dotfiles='cp -r ~/dotfiles "/mnt/hdd/dotfiles-$(date +%d-%m-%y-backup)"'
 alias nf='nvim $(fzf)'
+  # to find files by name + open in neovim asap in current dir
+alias fnv='nvim $(fd --hidden --exclude .git --type f | fzf --height=~30% --layout=default --border=double)'
+  # to find files by content + open in neovim asap in current dir
+alias rgnv='nvim $(rg "$1" | fzf --height=~30% --layout=default --border=double | cut -d : -f1)'
 alias fkill="ps -eo pid,comm | sed 1d | fzf -m | awk '{print \$1}' | xargs kill -9"
 alias cd..='cd ..'
 alias cd.='cd ..'
@@ -156,3 +160,6 @@ scriptsRun() {
   [[ $ans == y ]] && "$script"
 }
 bind '"\C-b":"scriptsRun\n"'
+
+# fzf setup
+eval "$(fzf --bash)"
