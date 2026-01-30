@@ -156,8 +156,9 @@ scriptsRun() {
 
   [[ -z "$script" ]] && return 0
 
-  read -p "Run $script? (y/N) " ans
-  [[ $ans == y ]] && "$script"
+  # read -p "Run $script? (y/N) " ans
+  # [[ $ans == y ]] && "$script"
+  "$script"
 }
 bind '"\C-b":"scriptsRun\n"'
 

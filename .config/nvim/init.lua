@@ -1,3 +1,4 @@
+-- to disable any plugin .. just go to its file .. suffix its extension with # >> mini.lua -> mini.lua#
 -- sourcing {grap and connect} the config separate files to the starting point {init.lua}
 vim.g.mapleader=" " -- <leader> as space
 vim.g.maplocalleader=" "

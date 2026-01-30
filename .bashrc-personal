@@ -6,14 +6,14 @@ PS1='\e[3;33m(\@)\e[m\u:\h\e[1;36m[\w]\e[m$ '
 
 # for lunar vim 
 export PATH=/home/dt/.local/bin:$PATH
-# for dotnet
-export PATH=/home/dt/.dotnet:$PATH
 # for doom
 # export PATH=/home/dt/.config/emacs/bin:$PATH
 export PATH="$HOME/.config/emacs/bin:$PATH"
 export PATH="$HOME/.emacs.d/bin:$PATH"
 # add scripts folder to my path
 export PATH="/home/dt/scripts/:$PATH"
+# add dotnet tools
+export PATH="$HOME/.dotnet/tools:$PATH"
 
 
 # autostart with bash

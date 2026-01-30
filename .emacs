@@ -6,6 +6,7 @@
 ;; to enable MELPA Stable if desired.  See `package-archive-priorities`
 ;; and `package-pinned-packages`. Most users will not need or want to do this.
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
 (package-initialize)
 ;; Refresh package contents if not already done
 (unless package-archive-contents
@@ -125,9 +126,36 @@
 ;;(setq corfu-auto t)
 
 ;; --------------------
+;; search selected in browser, chatgpt
+;; --------------------
+(defun search-selected-text ()
+  (interactive)
+  (if (use-region-p)
+      (browse-url
+       (concat "https://duckduckgo.com/?q="
+               (url-hexify-string
+                (buffer-substring-no-properties
+                 (region-beginning)
+                 (region-end)))))
+    (message "No region selected")))
+(defun ask-chatgpt-browser ()
+  "Send selected text to ChatGPT in browser."
+  (interactive)
+  (if (use-region-p)
+      (let ((query (buffer-substring-no-properties
+                    (region-beginning)
+                    (region-end))))
+        (browse-url
+         (concat "https://chat.openai.com/?q="
+                 (url-hexify-string query))))
+    (message "No region selected")))
+(global-set-key (kbd "C-c s") #'search-selected-text)
+(global-set-key (kbd "C-c g") #'ask-chatgpt-browser)
+
+;; --------------------
 ;; gcc AND gc to comment/uncomment
 ;; --------------------
-(defun my/comment-line ()
+(defun comment-line ()
   "Comment or uncomment the current line."
   (interactive)
   (comment-or-uncomment-region (line-beginning-position) (line-end-position))
@@ -138,22 +166,21 @@
   ;;jk as esc
   (define-key evil-insert-state-map (kbd "j k") 'evil-normal-state)
   ;; Make gc an operator that works with motions (like gcap, gc5j, etc.)
-  (evil-define-operator my/evil-comment-operator (beg end)
+  (evil-define-operator evil-comment-operator (beg end)
     "Comment or uncomment region."
     (comment-or-uncomment-region beg end))
-  (define-key evil-normal-state-map "gc" 'my/evil-comment-operator)
-  (define-key evil-visual-state-map "gc" 'my/evil-comment-operator)
+  (define-key evil-normal-state-map "gc" 'evil-comment-operator)
+  (define-key evil-visual-state-map "gc" 'evil-comment-operator)
   ;; gcc comments the current line
-  (define-key evil-normal-state-map "g c c" 'my/comment-line))
-
+  (define-key evil-normal-state-map "g c c" 'comment-line))
 
 ;; --------------------
 ;; scratch buffer as default on startup, with no dashboard
 ;; --------------------
-;; (defun my-emacs-startup ()
+;; (defun emacs-startup ()
 ;;   "Start Emacs with *scratch* buffer."
 ;;   (get-buffer-create "*scratch*"))
-;; (setq initial-buffer-choice #'my-emacs-startup)
+;; (setq initial-buffer-choice #'emacs-startup)
 ;; (setq dashboard-set-init-info nil)
 (setq initial-major-mode 'org-mode)
 (setq inhibit-startup-screen t)
@@ -271,7 +298,7 @@
      "7fea145741b3ca719ae45e6533ad1f49b2a43bf199d9afaee5b6135fd9e6f9b8"
      "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5"
      default))
- '(package-selected-packages '(drag-stuff evil solarized-theme)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -302,27 +329,53 @@
 (drag-stuff-global-mode 1)
 (drag-stuff-define-keys)
 
+
 ;; --------------------
-;; search selected in browser, chatgpt
+;; workspaces
 ;; --------------------
-(defun my/search-selected-text ()
+(use-package perspective
+  :init
+  (setq persp-mode-prefix-key (kbd "C-c w"))
+  (persp-mode))
+(global-set-key (kbd "C-c w s") #'persp-switch)
+(global-set-key (kbd "C-c w k") #'persp-kill)
+(global-set-key (kbd "C-c w r") #'persp-rename)
+
+;; --------------------
+;; easier - [ ]  insertion
+;; --------------------
+(defun insert-org-checkbox ()
+  "Insert an unchecked checklist item."
   (interactive)
-  (if (use-region-p)
-      (browse-url
-       (concat "https://duckduckgo.com/?q="
-               (url-hexify-string
-                (buffer-substring-no-properties
-                 (region-beginning)
-                 (region-end)))))
-    (message "No region selected")))
-(defun my/ask-chatgpt-browser ()
-  "Send selected text to ChatGPT in browser."
-  (interactive)
-  (if (use-region-p)
-      (let ((query (buffer-substring-no-properties
-                    (region-beginning)
-                    (region-end))))
-        (browse-url
-         (concat "https://chat.openai.com/?q="
-                 (url-hexify-string query))))
-    (message "No region selected")))
+  ;; (beginning-of-line)
+  (insert "- [ ] "))
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "C-c i c") #'insert-org-checkbox))
+;
+; ;; --------------------
+; ;; csharp mode conf
+; ;; --------------------
+; (dolist (pkg '(lsp-mode
+;                lsp-ui
+;                company
+;                csharp-mode))
+;   (unless (package-installed-p pkg)
+;     (package-install pkg)))
+;     ;; ----------------------------
+;     ;; LSP Mode
+;     ;; ----------------------------
+; (require 'lsp-mode)
+; (setq lsp-keymap-prefix "C-c l")
+; (setq lsp-enable-snippet t
+;       lsp-enable-symbol-highlighting t
+;       lsp-enable-indentation t)
+; (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+; (require 'lsp-ui)
+; (setq lsp-ui-doc-enable t
+;       lsp-ui-sideline-enable t
+;       lsp-ui-sideline-show-hover t)
+; (require 'company)
+; (global-company-mode)
+; (require 'csharp-mode)
+; (add-hook 'csharp-mode-hook #'lsp)
+; (setq lsp-csharp-server-path "csharp-ls")
