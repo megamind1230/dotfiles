@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+WALLDIR="/mnt/hdd/Favorites"
+
+# Check if directory exists
+[ -d "$WALLDIR" ] || exit 1
+
+# Get list of images
+CHOICE=$(find "$WALLDIR" -type f \( \
+    -iname "*.jpg" -o \
+    -iname "*.jpeg" -o \
+    -iname "*.png" -o \
+    -iname "*.webp" \) \
+    | sort | rofi -dmenu -i -p "Select Wallpaper")
+
+# If user picked something
+if [ -n "$CHOICE" ]; then
+    xwallpaper --focus "$CHOICE"
+fi

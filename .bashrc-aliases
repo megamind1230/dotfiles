@@ -27,6 +27,7 @@ alias nsx='$my_active_nvim ~/.config/qtile/sxhkd/sxhkdrc'
 alias nlv='$my_active_nvim ~/.config/lvim/config.lua'
 alias nwords='$my_active_nvim /mnt/hdd/words.txt'
 alias cconf='$my_active_nvim ~/'
+alias ni3='$my_active_nvim ~/.config/i3/config'
 
 
 # sourcing
@@ -92,7 +93,8 @@ alias lslv='cd ~/.config/lvim ; ls'
 alias lskit='cd ~/.config/kitty ; ls'
 
 # alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c" # bugswriter version
-alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' && echo"
+# alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' && echo"
+alias h="history | cut -c 8- | fzf | tr -d '\n' && echo"
 # alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | wl-copy" # wl-clipboard is huge space
 # alias rondo="cdcore ; \ls | shuf | head -n 1" # so long my love
 alias wp="cd /mnt/e/Favorites; \ls | shuf | head -n 1" # name me a random bg img
