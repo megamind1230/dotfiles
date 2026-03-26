@@ -25,7 +25,7 @@ alias nalac='$my_active_nvim ~/.config/alacritty/alacritty.toml'
 alias nkit='$my_active_nvim ~/.config/kitty/kitty.conf'
 alias nsx='$my_active_nvim ~/.config/qtile/sxhkd/sxhkdrc'
 alias nlv='$my_active_nvim ~/.config/lvim/config.lua'
-alias nwords='$my_active_nvim /mnt/hdd/words.txt'
+alias nw='$my_active_nvim /mnt/hdd/words.txt'
 alias cconf='$my_active_nvim ~/'
 alias ni3='$my_active_nvim ~/.config/i3/config'
 
@@ -47,19 +47,47 @@ alias psearch='paru -Ss'
 
 ## faster
 # alias date="date +'%d-%m-%Y %a @ %r'"
-  # backup dotfiles folder
+    # open nextlearn asap
+alias nxl="cd ~/proj/nextLearn-19-3/NextLearn/ ; dotnet run"
+    # open obsidian vault asap
+alias cdvault="cd /mnt/hdd/st/obsi/"
+    # backup dotfiles folder
 alias backup-dotfiles='cp -r ~/dotfiles "/mnt/hdd/dotfiles-$(date +%d-%m-%y-backup)"'
 alias nf='nvim $(fzf)'
   # to find files by name + open in neovim asap in current dir
 alias fnv='nvim $(fd --hidden --exclude .git --type f | fzf --height=~30% --layout=default --border=double)'
-  # to find files by content + open in neovim asap in current dir
-alias rgnv='nvim $(rg "$1" | fzf --height=~30% --layout=default --border=double | cut -d : -f1)'
+  # to find files by content + open in neovim ASAP in current dir
+# alias rgnv='nvim $(rg "$1" | fzf --height=~30% --layout=default --border=double | cut -d : -f1)'
+  # fuzzy manager {fzm}
+alias fzm=" find -type d | fzf --multi --height=80% --border=sharp \
+--preview='tree -C {}' --preview-window='45%,border-sharp' \
+--prompt='Dirs > ' \
+--bind='enter:execute($EDITOR {+})' \
+--bind='del:execute(rm -ri {+})' \
+--bind='ctrl-v:toggle-preview' \
+--bind='ctrl-d:change-prompt(Dirs > )' \
+--bind='ctrl-d:+reload(find -type d)' \
+--bind='ctrl-d:+change-preview(tree -C {})' \
+--bind='ctrl-d:+refresh-preview' \
+--bind='ctrl-f:change-prompt(Files > )' \
+--bind='ctrl-f:+reload(find -type f)' \
+--bind='ctrl-f:+change-preview(cat {})' \
+--bind='ctrl-f:+refresh-preview' \
+--bind='ctrl-a:select-all' \
+--bind='ctrl-x:deselect-all' \
+--header '
+CTRL-D to display directories | CTRL-F to display files
+CTRL-A to select all | CTRL-x to deselect all
+ENTER to edit | DEL to delete
+CTRL-V to toggle preview
+' "
 alias fkill="ps -eo pid,comm | sed 1d | fzf -m | awk '{print \$1}' | xargs kill -9"
 alias cd..='cd ..'
 alias cd.='cd ..'
 alias cd~='cd ~'
 alias cdc='cd ~/.config ;ls'
 alias cdh='cd ~'
+alias cdl='cd ~/Downloads/'
 # alias cdvb='cd /mnt/e/st/obsi/vault_bank'
 # alias cdcore='cd /mnt/e/hcore'
 alias cdcore='cd /mnt/hdd/hcore'
@@ -71,8 +99,8 @@ alias ls='ls -lath --color=auto'
 alias note="nvim $fastnote"
 alias file="thunar ."
 alias lv="lvim"
-alias xcopy="xclip -sel clip"
-alias ndswap="rm ~/.local/state/nvim/swap/*" # delete swap
+# alias xcopy="xclip -sel clip"
+# alias ndswap="rm ~/.local/state/nvim/swap/*" # delete swap
 alias dtlog="sudo pkill -u dt"
 alias nap="systemctl suspend"
 alias die="shutdown -h now"
@@ -93,11 +121,10 @@ alias lslv='cd ~/.config/lvim ; ls'
 alias lskit='cd ~/.config/kitty ; ls'
 
 # alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c" # bugswriter version
-# alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' && echo"
-alias h="history | cut -c 8- | fzf | tr -d '\n' && echo"
 # alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | wl-copy" # wl-clipboard is huge space
+alias h="history | cut -c 8- | fzf | tr -d '\n' && echo"
 # alias rondo="cdcore ; \ls | shuf | head -n 1" # so long my love
-alias wp="cd /mnt/e/Favorites; \ls | shuf | head -n 1" # name me a random bg img
+alias wp="cd /mnt/hdd/Favorites; \ls | shuf | head -n 1" # name me a random bg img
 
 
 alias now='mkdir "$(date +'%I%p-%Y-%m-%d')"'
@@ -166,3 +193,24 @@ bind '"\C-b":"scriptsRun\n"'
 
 # fzf setup
 eval "$(fzf --bash)"
+
+rgnv() {
+    # Pick directory starting from HOME
+    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    [ -z "$dir" ] && return
+
+    result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
+        | fzf --ansi \
+              --phony \
+              --bind "change:reload:rg --hidden --line-number --no-heading --color=always -F {q} \"$dir\" || true" \
+              --delimiter : \
+              --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+              --preview-window=right:60%)
+
+    [ -z "$result" ] && return
+
+    file=$(echo "$result" | cut -d: -f1)
+    line=$(echo "$result" | cut -d: -f2)
+
+    nvim +"$line" "$file"
+}

@@ -210,3 +210,6 @@ hide_edge_borders none
 
 # screenshot
 bindsym $mod+Shift+s exec spectacle
+
+# screenshot
+bindsym $mod+Shift+t exec telegram-desktop

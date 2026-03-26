@@ -524,21 +524,7 @@
 ;; RSS feed reader {elfeed}
 (use-package elfeed
   :ensure t)
-
 (setq elfeed-feeds
       '("https://www.youtube.com/feeds/videos.xml?channel_id=UCX5lX80yKjkzyXQWkkm3rOQ"
         "https://www.youtube.com/feeds/videos.xml?channel_id=UCngn7SVujlvskHRvRKc1cTw"
         "https://www.youtube.com/feeds/videos.xml?channel_id=UC11DKpZ9mdjdb5fbdb7ulRw"))
-
-;; toggle evil-mode
-(global-set-key (kbd "C-c e") #'evil-mode)
-
-;; --------------------
-;; Org → PDF export
-;; --------------------
-(setq org-latex-compiler "xelatex")
-(setq org-latex-pdf-process
-      '("xelatex -interaction nonstopmode -output-directory %o %f"
-        "xelatex -interaction nonstopmode -output-directory %o %f"))
-;; Delete .tex/.log/.aux junk after a successful export
-(setq org-latex-remove-logfiles t)

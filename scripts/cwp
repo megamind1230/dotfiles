@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
+  WALLDIR="/mnt/hdd/Favorites"
+
+  [ -d "$WALLDIR" ] || exit 1
+
+  CHOICE=$(find "$WALLDIR" -type f \( \
+      -iname "*.jpg" -o \
+      -iname "*.jpeg" -o \
+      -iname "*.png" -o \
+      -iname "*.webp" \) | sort | \
+      fzf --preview 'chafa --size=40x20 {}')
+
+  if [ -n "$CHOICE" ]; then
+      hyprctl hyprpaper unload all
+      hyprctl hyprpaper preload "$CHOICE"
+      hyprctl hyprpaper wallpaper ",$CHOICE"
+  fi
+
+elif [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
+
+  WALLDIR="/mnt/hdd/Favorites"
+
+  [ -d "$WALLDIR" ] || exit 1
+
+  CHOICE=$(find "$WALLDIR" -type f \( \
+      -iname "*.jpg" -o \
+      -iname "*.jpeg" -o \
+      -iname "*.png" -o \
+      -iname "*.webp" \) | sort | \
+      fzf --preview 'chafa --size=40x20 {}')
+
+  [ -n "$CHOICE" ] && xwallpaper --focus "$CHOICE"
+fi

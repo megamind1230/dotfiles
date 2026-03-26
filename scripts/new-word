@@ -1,8 +1,11 @@
 #!/bin/bash
-# Script with fuzzel
-word=$(echo "" | fuzzel --dmenu --prompt="Add word: ")
-meaning=$(echo "" | fuzzel --dmenu --prompt="Add meaning: ")
+  # Script was with with fuzzel 
+  # but now with rofi again
+# word=$(echo "" | fuzzel --dmenu --prompt="Add word: ")
+# meaning=$(echo "" | fuzzel --dmenu --prompt="Add meaning: ")
 
+word=$(echo "" | rofi -dmenu -p "Add word: ")
+meaning=$(echo "" | rofi -dmenu -p "Add meaning: ")
 if [[ -n "$word" && -n "$meaning" ]]; then
     echo "$word | $meaning" >> "/mnt/hdd/words.txt"
     notify-send "Word Added" "'$word' added to dictionary"

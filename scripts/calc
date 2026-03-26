@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# requires bc to be installed
-expr=$(printf "" | fuzzel --dmenu --prompt "calc: ")
+  # requires bc to be installed
+  # expr=$(printf "" | fuzzel --dmenu --prompt "calc: ")
+expr=$(printf "" | rofi -dmenu -p "calc: ")
 
 [ -z "$expr" ] && exit 0
 
@@ -8,5 +9,10 @@ result=$(echo "$expr" | bc -l 2>/dev/null)
 
 [ -z "$result" ] && exit 1
 
-echo "$result" | wl-copy
+if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
+  echo "$result" | wl-copy
+
+elif [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
+  echo "$result" | xclip -sel clipboard
+fi
 notify-send "Calculator" "$expr = $result"

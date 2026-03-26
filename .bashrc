@@ -108,8 +108,6 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-export EDITOR='nvim'
-export VISUAL='nvim'
 
 
 #create a file called .bashrc-personal and put all your personal aliases

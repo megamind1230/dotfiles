@@ -3,6 +3,11 @@ export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
 # bash prompt theming
 PS1='\e[3;33m(\@)\e[m\u:\h\e[1;36m[\w]\e[m$ '
 
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+export TERMINAL=/usr/bin/kitty
+
 
 # for lunar vim 
 export PATH=/home/dt/.local/bin:$PATH
@@ -99,3 +104,48 @@ RESET="\e[0m"
 if [[ -f /mnt/hdd/words.txt ]] && [[ -s /mnt/hdd/words.txt ]]; then
   echo -e "${MAGENTA}$(shuf -n 1 /mnt/hdd/words.txt)${RESET}"
 fi
+
+#
+# # extract 
+# ex() {
+#     if [ -z "$1" ]; then
+#         echo "Usage: ex <archive-file>"
+#         return 1
+#     fi
+#
+#     if [ ! -f "$1" ]; then
+#         echo "File not found: $1"
+#         return 1
+#     fi
+#
+#     case "$1" in
+#         *.tar)         tar -xvf "$1" ;;
+#         *.tar.gz|*.tgz) tar -xzvf "$1" ;;
+#         *.tar.bz2)     tar -xjvf "$1" ;;
+#         *.tar.xz)      tar -xJvf "$1" ;;
+#         *.zip)         unzip "$1" ;;
+#         *.rar)         unrar x "$1" ;;
+#         *.7z)          7z x "$1" ;;
+#         *.gz)          gunzip "$1" ;;
+#         *.bz2)         bunzip2 "$1" ;;
+#         *) echo "Unsupported archive format." ;;
+#     esac
+# }
+#
+# # compress
+# compress() {
+#     if [ -z "$1" ] || [ -z "$2" ]; then
+#         echo "Usage: compress <output-file> <file-or-folder>"
+#         return 1
+#     fi
+#
+#     case "$1" in
+#         *.tar)         tar -cvf "$1" "$2" ;;
+#         *.tar.gz|*.tgz) tar -czvf "$1" "$2" ;;
+#         *.tar.bz2)     tar -cjvf "$1" "$2" ;;
+#         *.tar.xz)      tar -cJvf "$1" "$2" ;;
+#         *.zip)         zip -r "$1" "$2" ;;
+#         *.7z)          7z a "$1" "$2" ;;
+#         *) echo "Unsupported archive format." ;;
+#     esac
+# }
