@@ -1,0 +1,54 @@
+#!/bin/bash
+
+BASE="$HOME/snapshot"
+FILE="$BASE/snapshot.txt"
+IMGS="$BASE/imgs"
+mkdir -p "$BASE" "$IMGS"
+touch "$FILE"
+
+entries=$(tac "$FILE")
+
+result=$(echo "$entries" | rofi -dmenu -p "SnapShot" -theme-str 'window { location: center; }')
+
+if [ -z "$result" ]; then
+    exit 0
+fi
+
+if grep -nFx "$result" "$FILE" > /dev/null 2>&1; then
+    line=$(grep -nFx "$result" "$FILE" | head -1 | cut -d: -f1)
+    ${TERMINAL:-foot} -e nvim "+$line" "$FILE"
+else
+    ts=$(date '+%d-%m-%Y@%I-%M %p')
+    img_path=""
+
+    if command -v cliphist >/dev/null 2>&1; then
+        latest=$(cliphist list 2>/dev/null | head -1)
+        if [ -n "$latest" ]; then
+            id=$(echo "$latest" | cut -f1)
+            data=$(echo "$latest" | cut -f2-)
+            if echo "$data" | grep -q "binary data"; then
+                img_name=$(date '+%d-%m-%Y@%I-%M-%S-%p').png
+                cliphist decode "$id" > "$IMGS/$img_name" 2>/dev/null
+                [ -s "$IMGS/$img_name" ] && img_path="$IMGS/$img_name"
+            fi
+        fi
+    elif [ -n "$WAYLAND_DISPLAY" ]; then
+        if wl-paste --list-types 2>/dev/null | grep -qi "image"; then
+            img_name=$(date '+%d-%m-%Y@%I-%M-%S-%p').png
+            wl-paste > "$IMGS/$img_name" 2>/dev/null
+            [ -s "$IMGS/$img_name" ] && img_path="$IMGS/$img_name"
+        fi
+    else
+        if xclip -selection clipboard -t TARGETS -o 2>/dev/null | grep -qi "image"; then
+            img_name=$(date '+%d-%m-%Y@%I-%M-%S-%p').png
+            xclip -selection clipboard -t image/png -o > "$IMGS/$img_name" 2>/dev/null
+            [ -s "$IMGS/$img_name" ] && img_path="$IMGS/$img_name"
+        fi
+    fi
+
+    if [ -n "$img_path" ]; then
+        echo "[$ts] $result (img: $img_path)" >> "$FILE"
+    else
+        echo "[$ts] $result" >> "$FILE"
+    fi
+fi

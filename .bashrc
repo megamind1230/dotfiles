@@ -114,8 +114,11 @@ fi
 #in there. They will not be overwritten by skel.
 
 [[ -f ~/.bashrc-personal ]] && . ~/.bashrc-personal
-[[ -f ~/.bashrc-personal ]] && . ~/.bashrc-aliases
+[[ -f ~/.bashrc-aliases ]] && . ~/.bashrc-aliases
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
 
+
+# opencode
+export PATH=/home/dt/.opencode/bin:$PATH

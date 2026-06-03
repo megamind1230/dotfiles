@@ -1,0 +1,507 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ──────────────────────────────────────────────
+# File Organizer  —  bash version
+# Usage: ./file-organizer.sh --source <dir> [options]
+# ──────────────────────────────────────────────
+
+VERSION="1.0.0"
+LOG_DIR="logs"
+LOG_FILE="$LOG_DIR/app-$(date +%Y%m%d).log"
+
+# Category definitions
+declare -A CATEGORIES
+CATEGORIES=(
+    [imgs]="jpg jpeg png gif bmp webp svg ico"
+    [docs]="pdf doc docx xls xlsx ppt pptx txt rtf csv md"
+    [aud]="mp3 wav flac aac ogg wma m4a"
+    [vid]="mp4 mkv avi mov wmv flv webm"
+    [archives]="zip rar 7z tar gz bz2"
+    [installers]="exe msi deb rpm appimage"
+)
+
+# ── helpers ──
+
+log()  { local lvl="$1"; shift; echo "[$lvl] $(date '+%H:%M:%S') $*" >> "$LOG_FILE"; }
+info() { log "INFO" "$*"; }
+warn() { log "WARN" "$*"; }
+err()  { log "ERROR" "$*"; echo "[ERROR] $*" >&2; }
+msg()  { echo "$*"; }
+
+die() { err "$*"; exit 1; }
+
+sanitize() {
+    local name="$1"
+    # Replace characters invalid in folder names on Linux (rare, but handle /)
+    name="${name//\//_}"
+    echo "$name"
+}
+
+unique_path() {
+    local dir="$1" name="$2" base ext candidate
+    candidate="$dir/$name"
+    if [[ ! -e "$candidate" ]]; then
+        echo "$name"
+        return
+    fi
+    base="${name%.*}"
+    ext="${name##*.}"
+    [[ "$name" != *.* ]] && ext=""
+    local i=1
+    while true; do
+        if [[ -n "$ext" ]]; then
+            candidate="${base}(${i}).${ext}"
+        else
+            candidate="${base}(${i})"
+        fi
+        if [[ ! -e "$dir/$candidate" ]]; then
+            echo "$candidate"
+            return
+        fi
+        ((i++))
+    done
+}
+
+resolve_category() {
+    local ext="${1,,}"
+    local cat
+    for cat in "${!CATEGORIES[@]}"; do
+        for e in ${CATEGORIES[$cat]}; do
+            [[ ".$e" == "$ext" ]] && { echo "$cat"; return; }
+        done
+    done
+    echo "others"
+}
+
+# ── core operations ──
+
+scan_dir() {
+    local dir="$1"
+    for f in "$dir"/*; do
+        [[ -f "$f" ]] || continue
+        printf '%s\n' "$f"
+    done
+}
+
+move_file() {
+    local src="$1" dest_dir="$2" dry_run="$3"
+    local name="${src##*/}"
+    local dest_name; dest_name=$(unique_path "$dest_dir" "$name")
+    local dest="$dest_dir/$dest_name"
+
+    if [[ "$dry_run" == "1" ]]; then
+        msg "  [DRY-RUN] ${name} → ${dest_dir##*/}/${dest_name}" >&2
+        info "[DRY-RUN] ${name} → ${dest_dir##*/}/${dest_name}"
+    else
+        mkdir -p "$dest_dir"
+        mv "$src" "$dest"
+        msg "  [MOVED]   ${name} → ${dest_dir##*/}/${dest_name}" >&2
+        info "[MOVED]   ${name} → ${dest_dir##*/}/${dest_name}"
+    fi
+}
+
+match_patterns() {
+    local -n _files="$1"       # array of source paths (passed by reference, modified in-place)
+    local -n _patterns="$2"    # patterns array (passed by name)
+    local use_regex="$3"
+    local matched=()
+    local unmatched=()
+
+    for src in "${_files[@]}"; do
+        local name="${src##*/}"
+        local found=0
+
+        for pat in "${_patterns[@]}"; do
+            [[ -z "$pat" ]] && continue
+            local folder; folder=$(sanitize "$pat")
+
+            if [[ "$use_regex" == "1" ]]; then
+                if [[ "$name" =~ $pat ]]; then
+                    matched+=("$src|$folder")
+                    found=1
+                    break
+                fi
+            else
+                # case-insensitive substring match
+                if [[ "${name,,}" == *"${pat,,}"* ]]; then
+                    matched+=("$src|$folder")
+                    found=1
+                    break
+                fi
+            fi
+        done
+
+        [[ "$found" == "0" ]] && unmatched+=("$src")
+    done
+
+    # Return matched as global array, update _files with unmatched
+    MATCHED_FILES=("${matched[@]}")
+    _files=("${unmatched[@]}")
+}
+
+category_sort() {
+    local -n _files="$1"
+    local src_dir="$2" dry_run="$3"
+    local count=0
+
+    for src in "${_files[@]}"; do
+        local name="${src##*/}" ext="${src##*.}"
+        [[ -z "$ext" ]] && ext=""
+        local category; category=$(resolve_category ".$ext")
+        local dest_dir="$src_dir/$category"
+        move_file "$src" "$dest_dir" "$dry_run"
+        ((count++))
+    done
+
+    echo "$count"
+}
+
+move_container() {
+    local -a files=("${!1}")
+    local container="$2" src_dir="$3" dry_run="$4"
+    local count=0
+
+    for src in "${files[@]}"; do
+        local name="${src##*/}"
+        local dest_dir="$src_dir/$container"
+        move_file "$src" "$dest_dir" "$dry_run"
+        ((count++))
+    done
+
+    echo "$count"
+}
+
+reverse_organize() {
+    local src_dir="$1" dry_run="$2"
+    local total=0
+
+    for subdir in "$src_dir"/*/; do
+        [[ -d "$subdir" ]] || continue
+        for f in "$subdir"/*; do
+            [[ -f "$f" ]] || continue
+            local name="${f##*/}"
+            local dest_name; dest_name=$(unique_path "$src_dir" "$name")
+            local dest="$src_dir/$dest_name"
+            local size; size=$(stat -c%s "$f" 2>/dev/null || echo 0)
+
+            if [[ "$dry_run" == "1" ]]; then
+                msg "  [DRY-RUN] ${name} ← ${subdir##*/}/${name}"
+                info "[DRY-RUN] ${name} ← ${subdir##*/}/${name}"
+            else
+                mv "$f" "$dest"
+                msg "  [MOVED]   ${name} ← ${subdir##*/}/${name}"
+                info "[MOVED]   ${name} ← ${subdir##*/}/${name}"
+            fi
+            ((total++))
+        done
+    done
+
+    echo "$total"
+}
+
+# ── interactive mode ──
+
+interactive_menu() {
+    local src_dir="$1" dry_run="$2" use_regex="$3"
+    local -a remaining
+    mapfile -t remaining < <(scan_dir "$src_dir")
+    msg ""
+    msg "[INFO] Source: $src_dir  (${#remaining[@]} files found)"
+    info "Interactive mode started for $src_dir (${#remaining[@]} files)"
+
+    while true; do
+        msg ""
+        msg "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        msg "     File Organizer  |  ${#remaining[@]} files remaining"
+        msg "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        msg "    1. Container   2. Patterns"
+        msg "    3. General     l. List"
+        msg "    r. Reverse     q. Quit"
+        read -r -p "  Select: " choice
+        choice="${choice,,}"
+
+        case "$choice" in
+            1)
+                interactive_container remaining "$src_dir" "$dry_run"
+                ;;
+            2)
+                interactive_patterns remaining "$src_dir" "$dry_run" "$use_regex"
+                ;;
+            3)
+                interactive_general remaining "$src_dir" "$dry_run"
+                ;;
+            l)
+                msg ""
+                msg "  Remaining files:"
+                if [[ ${#remaining[@]} -eq 0 ]]; then
+                    msg "    (none)"
+                else
+                    for i in "${!remaining[@]}"; do
+                        local name="${remaining[$i]##*/}"
+                        msg "    $((i+1)). $name"
+                    done
+                fi
+                ;;
+            r)
+                interactive_reverse "$src_dir" "$dry_run"
+                mapfile -t remaining < <(scan_dir "$src_dir")
+                ;;
+            q)
+                msg "[INFO] Exiting."
+                info "Interactive mode exited by user"
+                return
+                ;;
+            *)
+                msg "[ERROR] Invalid choice."
+                ;;
+        esac
+
+        if [[ ${#remaining[@]} -eq 0 ]] && [[ "$choice" != "r" && "$choice" != "q" && "$choice" != "l" ]]; then
+            msg "[INFO] All files organized!"
+            msg "[INFO] Type 'q' to quit or 'r' to reverse."
+        fi
+    done
+}
+
+interactive_container() {
+    local -n _rem="$1"
+    local src_dir="$2"
+    local dry_run="$3"
+
+    if [[ ${#_rem[@]} -eq 0 ]]; then
+        msg "[INFO] No files remaining."
+        return
+    fi
+
+    msg ""
+    msg "  Files:"
+    for i in "${!_rem[@]}"; do
+        msg "    $((i+1)). ${_rem[$i]##*/}"
+    done
+
+    read -r -p $'\n  Select files by index (e.g. 2,3 or 1-3): ' input
+    local -A selected_indices=()
+    IFS=',' read -ra parts <<< "$input"
+    for part in "${parts[@]}"; do
+        part="${part// /}"
+        if [[ "$part" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+            for ((i=${BASH_REMATCH[1]}; i<=${BASH_REMATCH[2]}; i++)); do
+                ((i >= 1 && i <= ${#_rem[@]})) && selected_indices[$((i-1))]=1
+            done
+        elif [[ "$part" =~ ^[0-9]+$ ]]; then
+            ((part >= 1 && part <= ${#_rem[@]})) && selected_indices[$((part-1))]=1
+        fi
+    done
+
+    [[ ${#selected_indices[@]} -eq 0 ]] && { msg "[ERROR] No valid indices provided."; return; }
+
+    read -r -p "  Container folder name: " folder_name
+    [[ -z "$folder_name" ]] && { msg "[ERROR] Folder name cannot be empty."; return; }
+    folder_name=$(sanitize "$folder_name")
+
+    info "Container phase: moving ${#selected_indices[@]} files to $folder_name"
+
+    local -a new_remaining=()
+    local moved=0
+    for i in "${!_rem[@]}"; do
+        if [[ -v selected_indices[$i] ]]; then
+            move_file "${_rem[$i]}" "$src_dir/$folder_name" "$dry_run"
+            moved=$((moved + 1))
+        else
+            new_remaining+=("${_rem[$i]}")
+        fi
+    done
+
+    _rem=("${new_remaining[@]}")
+}
+
+interactive_patterns() {
+    local -n _rem="$1"
+    local src_dir="$2"
+    local dry_run="$3"
+    local use_regex="$4"
+
+    [[ ${#_rem[@]} -eq 0 ]] && { msg "[INFO] No files remaining."; return; }
+
+    read -r -p $'\n  Enable Regex? (y/n): ' regex_choice
+    case "${regex_choice,,}" in
+        y|yes) use_regex=1 ;;
+        *)     use_regex=0 ;;
+    esac
+
+    local mode="keywords"
+    [[ "$use_regex" == "1" ]] && mode="regex patterns"
+    read -r -p $'\n  Enter comma-separated '"${mode}"': ' input
+    IFS=',' read -ra pats <<< "$input"
+    local -a patterns=()
+    for p in "${pats[@]}"; do
+        p="${p// /}"
+        [[ -n "$p" ]] && patterns+=("$p")
+    done
+
+    [[ ${#patterns[@]} -eq 0 ]] && { msg "[ERROR] No patterns provided."; return; }
+
+    match_patterns _rem patterns "$use_regex"
+    local -a matched=("${MATCHED_FILES[@]}")
+
+    [[ ${#matched[@]} -eq 0 ]] && { msg "[INFO] No files matched the patterns."; return; }
+
+    info "Patterns phase: matched and moving ${#matched[@]} files"
+
+    for entry in "${matched[@]}"; do
+        local src="${entry%%|*}" folder="${entry#*|}"
+        move_file "$src" "$src_dir/$folder" "$dry_run"
+    done
+}
+
+interactive_general() {
+    local -n _rem="$1"
+    local src_dir="$2"
+    local dry_run="$3"
+
+    [[ ${#_rem[@]} -eq 0 ]] && { msg "[INFO] No files remaining."; return; }
+
+    info "General phase: moving ${#_rem[@]} files by category"
+
+    local count; count=$(category_sort _rem "$src_dir" "$dry_run")
+    _rem=()
+}
+
+interactive_reverse() {
+    local src_dir="$1" dry_run="$2"
+    info "Reverse phase triggered"
+    msg "[INFO] Reverse mode: moving files from subfolders back to source directory."
+    local total; total=$(reverse_organize "$src_dir" "$dry_run")
+    msg "[SUMMARY] $total files unorganized"
+    info "Reverse summary: $total files unorganized"
+}
+
+# ── CLI entry ──
+
+usage() {
+    cat <<EOF
+File Organizer v$VERSION
+
+Usage:
+  $(basename "$0") --source <dir> [options]
+
+Options:
+  --source <dir>        Directory to organize (required)
+  --patterns "kw1,kw2"  Comma-separated keyword or regex patterns
+  --container <name>    Move all files into a named container folder
+  --dry-run             Preview only, no files are moved
+  --reverse             Undo: move files from subfolders back to root
+  --one-shot            Non-interactive mode (default when --patterns is given)
+  --regex               Interpret --patterns values as regex
+  --interactive         Force interactive menu mode
+  --help                Show this help and exit
+
+Examples:
+  $(basename "$0") --source ~/Downloads
+  $(basename "$0") --source ~/Downloads --patterns "report,photo" --dry-run
+  $(basename "$0") --source ~/Downloads --patterns "^IMG_,\d{4}" --regex
+  $(basename "$0") --source ~/Downloads --reverse --dry-run
+  $(basename "$0") --source ~/Downloads --container "my-files"
+EOF
+    exit 0
+}
+
+# ── main ──
+
+main() {
+    local SOURCE_DIR=""
+    local -a PATTERNS=()
+    local CONTAINER=""
+    local DRY_RUN=0 REVERSE=0 ONE_SHOT=0 USE_REGEX=0 INTERACTIVE=0
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --source)    SOURCE_DIR="$2"; shift 2 ;;
+            --patterns)  IFS=',' read -ra PATTERNS <<< "$2"; shift 2 ;;
+            --container) CONTAINER="$2"; shift 2 ;;
+            --dry-run)   DRY_RUN=1; shift ;;
+            --reverse)   REVERSE=1; shift ;;
+            --one-shot)  ONE_SHOT=1; shift ;;
+            --regex)     USE_REGEX=1; shift ;;
+            --interactive) INTERACTIVE=1; shift ;;
+            --help|-h)   usage ;;
+            *) die "Unknown argument: $1" ;;
+        esac
+    done
+
+    mkdir -p "$LOG_DIR"
+    info "=== File Organizer v$VERSION ==="
+    info "Source: ${SOURCE_DIR:-<none>}"
+
+    [[ -z "$SOURCE_DIR" ]] && die "--source is required."
+    [[ -d "$SOURCE_DIR" ]] || die "Source directory does not exist: $SOURCE_DIR"
+
+    # Interactive mode (default when no action flags given)
+    if [[ "$INTERACTIVE" == "1" ]] || { [[ "$ONE_SHOT" == "0" && "$REVERSE" == "0" && -z "$CONTAINER" && ${#PATTERNS[@]} -eq 0 ]]; }; then
+        interactive_menu "$SOURCE_DIR" "$DRY_RUN" "$USE_REGEX"
+        exit 0
+    fi
+
+    # Reverse mode
+    if [[ "$REVERSE" == "1" ]]; then
+        msg "[INFO] Reverse mode: moving files from subfolders back to source directory."
+        info "Starting reverse mode in $SOURCE_DIR"
+        local total; total=$(reverse_organize "$SOURCE_DIR" "$DRY_RUN")
+        msg "[SUMMARY] $total files unorganized — done."
+        info "Reverse summary: $total files unorganized"
+        exit 0
+    fi
+
+    # Container mode
+    if [[ -n "$CONTAINER" ]]; then
+        local -a files; mapfile -t files < <(scan_dir "$SOURCE_DIR")
+        [[ ${#files[@]} -eq 0 ]] && { msg "[INFO] No files found."; exit 0; }
+        CONTAINER=$(sanitize "$CONTAINER")
+        info "Container mode: moving ${#files[@]} files to $CONTAINER"
+        local count; count=$(move_container files[@] "$CONTAINER" "$SOURCE_DIR" "$DRY_RUN")
+        msg "[SUMMARY] $count files moved to '$CONTAINER'"
+        info "Container summary: $count files moved to $CONTAINER"
+        exit 0
+    fi
+
+    # Two-pass organization
+    msg "[INFO] Scanning: $SOURCE_DIR"
+    info "Starting one-shot organization in $SOURCE_DIR"
+    local -a all_files; mapfile -t all_files < <(scan_dir "$SOURCE_DIR")
+    [[ ${#all_files[@]} -eq 0 ]] && { msg "[INFO] No files found."; exit 0; }
+    msg "[INFO] ${#all_files[@]} files found."
+
+    # Pass 1 — Named Patterns
+    local named_count=0
+    if [[ ${#PATTERNS[@]} -gt 0 ]]; then
+        msg "[INFO] Pass 1 — Named Patterns"
+        local patterns_list="${PATTERNS[*]}"
+        info "Matching ${#PATTERNS[@]} patterns: $patterns_list (regex=$USE_REGEX)"
+        match_patterns all_files PATTERNS "$USE_REGEX"
+        local -a matched=("${MATCHED_FILES[@]}")
+        named_count="${#matched[@]}"
+
+        for entry in "${matched[@]}"; do
+            local src="${entry%%|*}" folder="${entry#*|}"
+            move_file "$src" "$SOURCE_DIR/$folder" "$DRY_RUN"
+        done
+        msg "  → $named_count files matched patterns"
+        info "Pattern pass done: $named_count files matched"
+    fi
+
+    # Pass 2 — Category Sort
+    local cat_count=0
+    if [[ ${#all_files[@]} -gt 0 ]]; then
+        msg "[INFO] Pass 2 — Category Sort"
+        cat_count=$(category_sort all_files "$SOURCE_DIR" "$DRY_RUN")
+        msg "  → $cat_count files sorted by category"
+        info "Category pass done: $cat_count files sorted"
+    fi
+
+    local total_moved=$((named_count + cat_count))
+    msg "[SUMMARY] $total_moved files organized ($named_count named, $cat_count categorized)"
+    info "Summary: $total_moved files organized ($named_count named, $cat_count categorized)"
+}
+
+main "$@"

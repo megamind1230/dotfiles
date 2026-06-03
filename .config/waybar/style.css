@@ -21,7 +21,19 @@ window#waybar {
     color: #ffffff;
 }
 
-#clock, #tray, #network, #pulseaudio {
+#battery, #clock, #tray, #network, #pulseaudio {
     padding: 0 6px;
     margin: 0 1px;
+}
+
+#battery.warning {
+    color: orange;
+}
+
+#battery.critical {
+    color: red;
+}
+
+#battery.charging {
+    color: lightgreen;
 }

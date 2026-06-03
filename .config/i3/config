@@ -40,6 +40,11 @@ bindsym $mod+$alt+equal exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK
 bindsym $mod+$alt+minus exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5% && $refresh_i3status
 bindsym $mod+m exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
 
+
+# my custom brightness
+bindsym $mod+$alt+i exec brightnessctl set 5%-
+bindsym $mod+$alt+o exec brightnessctl set +5%
+
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
@@ -209,7 +214,12 @@ default_floating_border none
 hide_edge_borders none
 
 # screenshot
-bindsym $mod+Shift+s exec spectacle
+# idk why flameshot is bugged ?
+# bindsym $mod+Shift+s exec spectacle
+bindsym $mod+Shift+s exec scrot -z -s -f "$HOME/Pictures/%d-%m-%Y %I:%M:%S %p.png"
 
-# screenshot
-bindsym $mod+Shift+t exec telegram-desktop
+# Move focused window to scratchpad
+bindsym $mod+Shift+a move scratchpad
+
+# Toggle scratchpad window
+bindsym $mod+a scratchpad show

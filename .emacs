@@ -299,9 +299,10 @@
      "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5"
      default))
  '(package-selected-packages
-   '(avy company company-box csharp-mode drag-stuff elfeed evil
-         evil-escape lsp-mode lsp-ui markdown-mode perspective
-         solarized-theme vterm yasnippet yasnippet-snippets)))
+   '(avy company company-box csharp-mode default-text-scale drag-stuff
+         elfeed evil evil-escape lsp-mode lsp-ui markdown-mode
+         perspective solarized-theme visual-regexp vterm yasnippet
+         yasnippet-snippets)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -542,3 +543,96 @@
         "xelatex -interaction nonstopmode -output-directory %o %f"))
 ;; Delete .tex/.log/.aux junk after a successful export
 (setq org-latex-remove-logfiles t)
+
+;; --------------------
+;; Global zoom (requires default-text-scale package)
+;; --------------------
+(use-package default-text-scale
+  :config
+  (global-set-key (kbd "C-=") 'default-text-scale-increase)
+  (global-set-key (kbd "C--") 'default-text-scale-decrease))
+
+;; --------------------
+;; pandoc markdown to org in-place convertion
+;; --------------------
+;; (defun md-to-org (beg end)
+;;   "Convert selected Markdown text to Org format in-place."
+;;   (interactive "r")
+;;   (unless (use-region-p)
+;;     (user-error "No region selected"))
+
+;;   (let* ((markdown (buffer-substring-no-properties beg end))
+;;          ;; Requires pandoc installed
+;;          (org-text
+;;           (with-temp-buffer
+;;             (insert markdown)
+;;             (shell-command-on-region
+;;              (point-min)
+;;              (point-max)
+;;              "pandoc -f markdown -t org"
+;;              t t)
+;;             (buffer-string))))
+
+;;     (delete-region beg end)
+;;     (goto-char beg)
+;;     (insert org-text)))
+(defun md-to-org (beg end)
+  "Convert selected Markdown text to Org format in-place."
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "No region selected"))
+
+  (let* ((markdown (buffer-substring-no-properties beg end))
+         (org-text
+          (with-temp-buffer
+            (insert markdown)
+            (shell-command-on-region
+             (point-min)
+             (point-max)
+             "pandoc -f markdown -t org"
+             t t)
+
+            ;; Remove CUSTOM_ID property drawers
+            (goto-char (point-min))
+            (while (re-search-forward
+                    "^:PROPERTIES:\n:CUSTOM_ID:.*\n:END:\n?"
+                    nil t)
+              (replace-match ""))
+
+            (buffer-string))))
+
+    (delete-region beg end)
+    (goto-char beg)
+    (insert org-text)))
+
+(setq make-backup-files nil) ; disable ~ backups
+(setq auto-save-default nil) ; disable #autosave# files
+
+
+;; (use-package pcre2el
+;;   :ensure t)
+
+;; (use-package visual-regexp
+;;   :ensure t)
+
+;; (use-package visual-regexp-steroids
+;;   :ensure t
+;;   :after (visual-regexp pcre2el))
+(defun my-replace-whole-buffer-if-no-region (orig-fun &rest args)
+  (if (use-region-p)
+      (apply orig-fun args)
+    (save-excursion
+      (mark-whole-buffer)
+      (apply orig-fun args))))
+
+(advice-add 'query-replace :around #'my-replace-whole-buffer-if-no-region)
+(advice-add 'query-replace-regexp :around #'my-replace-whole-buffer-if-no-region)
+(advice-add 'replace-string :around #'my-replace-whole-buffer-if-no-region)
+(advice-add 'replace-regexp :around #'my-replace-whole-buffer-if-no-region)
+
+
+
+;; --------------------
+;; highlight current line
+;; --------------------
+(global-hl-line-mode 1)
