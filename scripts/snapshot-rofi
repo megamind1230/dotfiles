@@ -1,7 +1,7 @@
 #!/bin/bash
 
-BASE="$HOME/snapshot"
-FILE="$BASE/snapshot.txt"
+BASE="$HOME/org"
+FILE="$BASE/inbox.org"
 IMGS="$BASE/imgs"
 mkdir -p "$BASE" "$IMGS"
 touch "$FILE"
@@ -18,7 +18,7 @@ if grep -nFx "$result" "$FILE" > /dev/null 2>&1; then
     line=$(grep -nFx "$result" "$FILE" | head -1 | cut -d: -f1)
     ${TERMINAL:-foot} -e nvim "+$line" "$FILE"
 else
-    ts=$(date '+%d-%m-%Y@%I-%M %p')
+    ts=$(date '+%Y-%m-%d %a %H:%M')
     img_path=""
 
     if command -v cliphist >/dev/null 2>&1; then
@@ -46,9 +46,10 @@ else
         fi
     fi
 
-    if [ -n "$img_path" ]; then
-        echo "[$ts] $result (img: $img_path)" >> "$FILE"
-    else
-        echo "[$ts] $result" >> "$FILE"
-    fi
+    {
+        echo "* $result"
+        echo "[$ts]"
+        [ -n "$img_path" ] && echo "[[file:$img_path]]"
+        echo
+    } >> "$FILE"
 fi

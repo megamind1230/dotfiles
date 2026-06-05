@@ -1,0 +1,58 @@
+* pdfdash — Known Bugs
+
+** 1. set -e kills the script on Ctrl+D during read
+
+- *Severity:* Medium
+- *Location:* =encrypt_pdf= (lines 106, 110), =decrypt_pdf= (line 123)
+- *Description:* With =set -euo pipefail= active, pressing Ctrl+D at a =read -rsp= prompt makes =read= return 1, which triggers an immediate shell exit.
+- *Repro:* Run Encrypt PDF → at password prompt, press Ctrl+D → script exits.
+- *Fix:* Either wrap in a subshell, use =read ... || true=, or temporarily disable =set -e= with =set +e= / =set -e=.
+
+** 2. No PDFs found → fzf gets empty list, Escape still returns empty
+
+- *Severity:* Low (handled, but silently)
+- *Location:* =pick_pdf= (line 25)
+- *Description:* If =find= returns nothing, fzf opens with an empty list. User presses Escape → empty string → function returns early. It works, but user gets no feedback about why.
+- *Fix:* Check if =find= output is empty before piping to fzf, show a warning message.
+
+** 3. Temp files orphaned on crash
+
+- *Severity:* Low
+- *Location:* Global
+- *Description:* =mktemp= files in =$TMPDIR= accumulate if the script is killed (=SIGKILL=, power loss) before the =rm -f= line runs.
+- *Fix:* Add a =trap 'rm -rf "$TMPDIR"' EXIT= handler at the top. Note: this can't handle =SIGKILL=.
+
+** 4. extract_pdf word-splitting edge cases
+
+- *Severity:* Low
+- *Location:* =extract_pdf= (line 65)
+- *Description:* The =$pages= variable is intentionally unquoted to allow =pdftk= to receive separate args like ="1-3" "5" "8"=. But if the user types garbage like ="a b"=, =pdftk will error with an unhelpful message.
+- *Fix:* Validate input with a regex before passing to pdftk, or let pdftk's error bubble up (current behavior).
+
+** 5. FZF_PDF_OPTS preview breaks with unusual filenames
+
+- *Severity:* Low
+- *Location:* =FZF_PDF_OPTS= (line 14-20)
+- *Description:* fzf replaces ={}= with the file path. Filenames with spaces, quotes, or special chars are passed to the preview =sh -c= subshell. The inline script uses unquoted =$f= in some spots (like =du -h "$f"= is quoted, but the assignment =f={}= isn't wrapped).
+- *Fix:* Not easily fixable in inline preview — fzf's ={}= is raw text substitution. For robust handling, use =fzf --preview '... "$FZF_PREVIEW" ...'= with proper env escaping (not available in older fzf versions).
+
+** 6. =echo ---= looks like an echo flag
+
+- *Severity:* Cosmetic
+- *Location:* =FZF_PDF_OPTS= preview script (line 18)
+- *Description:* =echo ---= could be interpreted by some shells as =echo - --= (flag parsing). Bash's builtin =echo= handles it fine, but POSIX =echo= implementations vary.
+- *Fix:* Use =printf -- "---\n"= or =echo "---"= to be explicit.
+
+** 7. =gs= compression has no validation
+
+- *Severity:* Low
+- *Location:* =compress_pdf= (line 92-96)
+- *Description:* If =gs= fails (bad PDF, disk full, permissions), =set -e= kills the script with ghostscript's error message.
+- *Fix:* Wrap =gs= in an =if= block or add =|| true= to prevent abort, then check the output file was created.
+
+** 8. FZF_PDF_OPTS uses =pdftotext ... - 2>/dev/null=
+
+- *Severity:* Very Low
+- *Location:* =FZF_PDF_OPTS= preview script (line 19)
+- *Description:* Error output from =pdftotext= is suppressed. If the PDF is encrypted or corrupted, the preview shows nothing. User won't know why.
+- *Fix:* Show a brief error message on stderr redirect, e.g. =pdftotext "$f" - 2>&1 | head -80=, or check exit code.

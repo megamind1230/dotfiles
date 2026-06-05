@@ -1,0 +1,160 @@
+* pdfdash
+
+Interactive PDF dashboard for the terminal. Pick a PDF with preview, then run operations on it — all through =fzf= menus.
+
+** Features
+
+| Feature           | Description                                         | Tool        |
+|-------------------+-----------------------------------------------------+-------------|
+| Extract Images    | Export pages as PNG, JPEG, or TIFF (all or range)   | pdftoppm    |
+| Extract Pages     | Pull specific pages into a new PDF                  | pdftk       |
+| Merge PDFs        | Combine multiple PDFs into one (multi-select)       | pdftk       |
+| Compress PDF      | Reduce file size (4 presets from screen→prepress)   | ghostscript |
+| Encrypt PDF       | Password-protect with owner + optional user pw      | pdftk       |
+| Decrypt PDF       | Strip password protection                           | pdftk       |
+| Rotate Pages      | Rotate all pages 90° CW, 90° CCW, or 180°          | pdftk       |
+
+** Dependencies
+
+- =pdftk= — page extraction, merge, encryption, rotation
+- =poppler-utils= (provides =pdftoppm=, =pdftotext=) — image export, text preview
+- =fzf= — interactive fuzzy-finder menu + preview pane
+- =ghostscript= (provides =gs=) — PDF compression
+
+** Usage
+
+Just run:
+
+: ./pdfdash
+
+Or if it's in =$PATH=:
+
+: pdfdash
+
+This opens a menu. Navigate with arrow keys, select with Enter, quit with Escape or select "Quit".
+
+Each feature follows the same flow:
+
+1. Pick a PDF (fzf opens with preview of file size, page count, and text content)
+2. Answer prompts (page ranges, passwords, format choices)
+3. Output is saved next to the original with a descriptive suffix
+
+** Layout
+
+: ┌────────────────────────────┐
+: │ PDF Dashboard              │
+: ├────────────────────────────┤
+: │ Extract Images             │
+: │ Extract PDF Pages          │
+: │ Merge PDFs                 │
+: │ Compress PDF               │
+: │ Encrypt PDF                │
+: │ Decrypt PDF                │
+: │ Rotate Pages               │
+: │ Quit                       │
+: └────────────────────────────┘
+
+When picking a PDF, the right 60% of the terminal shows:
+
+: File: ./document.pdf
+: Size: 2.3M
+: Pages: 42
+: ---
+: (first 80 lines of extracted text)
+
+** Tech Stack
+
+- *Language:* Bash (no external scripting language)
+- *UI:* fzf (fuzzy finder with preview window)
+- *PDF engine:* pdftk + poppler-utils + ghostscript
+- *Entry point:* =dashboard()= — infinite loop, fzf-based case switch
+- *Temp files:* =mktemp= in =/tmp/pdfdash/=
+
+** Structure
+
+: ┌──────────────────────────────────────────┐
+: │ pick_pdf()    — fzf wrapper with preview  │
+: │ extract_images() — pdftoppm + format pick │
+: │ extract_pdf()     — pdftk cat             │
+: │ merge_pdfs()      — pdftk cat multi       │
+: │ compress_pdf()    — gs pdfwrite           │
+: │ encrypt_pdf()     — pdftk owner_pw        │
+: │ decrypt_pdf()     — pdftk input_pw        │
+: │ rotate_pdf()      — pdftk cat 1-end{dir}  │
+: │ dashboard()       — main loop + menu      │
+: └──────────────────────────────────────────┘
+
+All functions get input via =pick_pdf=, so the fzf preview applies everywhere.
+
+** File Locations
+
+- Script: =~/.local/bin/pdfdash= (or wherever in =$PATH=)
+- Temp files: =/tmp/pdfdash/= (cleaned on reboot)
+- Docs: =plan-todos.org=, =bugs.org=, =README.org= (alongside the script)
+
+** Exit Codes
+
+| Code | Meaning              |
+|------+----------------------|
+| 0    | Normal exit (Quit)   |
+| 1    | Bash error (=set -e=) |
+
+** Notes
+
+- =set -euo pipefail= is enabled — any command failure exits immediately
+- The script runs in the current directory and finds PDFs recursively (=find . -type f -iname "*.pdf"=)
+- Encrypted PDFs use 128-bit AES (pdftk default)
+
+* snapshot-rofi
+
+Quick-capture rofi frontend for org-mode notes. Type a new note → appended to =~/org/inbox.org= with Emacs-format timestamp and optional clipboard image as org link. Selecting an existing entry opens it in nvim at that line.
+
+Deps: rofi, nvim, cliphist/wl-paste/xclip
+
+* calc
+
+Opens a rofi prompt for a math expression, evaluates it with =bc -l=, copies result to clipboard (=wl-copy=/=xclip=), shows =notify-send= notification.
+
+Deps: rofi, bc, wl-copy/xclip, notify-send
+
+* cwp
+
+Interactive wallpaper selector. Uses =fzf= with =chafa= preview to pick an image from =/mnt/hdd/Favorites=, sets it via =hyprctl hyprpaper= (Wayland) or =xwallpaper= (X11).
+
+Deps: fzf, chafa, hyprctl+hyprpaper/xwallpaper
+
+* emote
+
+Launches a rofi dmenu with an embedded emoji list, copies the selected emoji to clipboard (=wl-copy=/=xclip=).
+
+Deps: rofi, wl-copy/xclip
+
+* file-organizer
+
+File sorting tool: categorizes files (imgs, docs, aud, vid, archives, installers, others) with pattern/regex matching, container folders, interactive menu, dry-run, and undo mode.
+
+Deps: bash 4+, coreutils (mkdir, mv, stat, date)
+
+* new-word
+
+Prompts for a word and definition via two rofi dialogs, appends the pair to =/mnt/hdd/words.txt=, shows notify-send confirmation.
+
+Deps: rofi, notify-send
+
+* timer
+
+Reads a duration (e.g. =5min=) and task name from stdin, runs =termdown= as countdown, plays =~/pigeon.mp3= via =paplay= on completion, logs to =/mnt/hdd/tasks-log.txt=.
+
+Deps: termdown, paplay
+
+* toglang
+
+Toggles keyboard layout between =us= and =ara= using =setxkbmap=.
+
+Deps: setxkbmap
+
+* tst
+
+Display-server detection script — prints "hi wayland" or "hi xorg" based on =$XDG_SESSION_TYPE=.
+
+Deps: none

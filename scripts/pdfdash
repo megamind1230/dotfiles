@@ -1,39 +1,56 @@
 #!/usr/bin/env bash
 
-# make sure installed: pdftk poppler-utils pandoc fzf
+# dependencies: pdftk poppler-utils fzf ghostscript
 
 set -euo pipefail
 
 TMPDIR="/tmp/pdfdash"
-
 mkdir -p "$TMPDIR"
 
+#baka: fzf replaces {} with selected file path inline
+#baka: $2 in awk would conflict with shell, so we use sed instead
+FZF_PDF_OPTS=(
+    --preview '
+        f={}
+        s=$(du -h "$f" | cut -f1)
+        p=$(pdftk "$f" dump_data 2>/dev/null | grep NumberOfPages | sed "s/.*: //")
+        echo "File: $f"
+        echo "Size: $s"
+        echo "Pages: ${p:-N/A}"
+        echo ---
+        pdftotext "$f" - 2>/dev/null | head -80
+    '
+    --preview-window=right:60%
+)
+
+#baka: "$@" lets callers pass extra fzf flags (e.g. -m for multi-select)
 pick_pdf() {
-    find . -type f -iname "*.pdf" | fzf
+    find . -type f -iname "*.pdf" | fzf "${FZF_PDF_OPTS[@]}" "$@"
 }
 
 extract_images() {
-    local pdf
+    local pdf fmt pages outdir tmp range
     pdf=$(pick_pdf)
-
     [ -z "$pdf" ] && return
 
-    pages=$(printf "all\ncustom" | fzf)
+    fmt=$(printf "png\njpeg\ntiff" | fzf --header="Image format")
+    [ -z "$fmt" ] && return
+
+    pages=$(printf "all\ncustom" | fzf --header="Pages")
+    [ -z "$pages" ] && return
 
     outdir="${pdf%.pdf}_images"
     mkdir -p "$outdir"
 
     if [[ "$pages" == "all" ]]; then
-        pdftoppm -png "$pdf" "$outdir/page"
+        #baka: "-$fmt" expands to -png, -jpeg, or -tiff for pdftoppm
+        pdftoppm "-$fmt" "$pdf" "$outdir/page"
     else
-        read -rp "Pages (example 1-5 or 2,4,6): " range
-
-        tmp="$TMPDIR/tmp_extract.pdf"
-
+        read -rp "Page range (e.g. 1-5, 2,4,6): " range
+        [ -z "$range" ] && return
+        tmp=$(mktemp "$TMPDIR/extract.XXXXXX.pdf")
         pdftk "$pdf" cat "$range" output "$tmp"
-
-        pdftoppm -png "$tmp" "$outdir/page"
-
+        pdftoppm "-$fmt" "$tmp" "$outdir/page"
         rm -f "$tmp"
     fi
 
@@ -41,101 +58,125 @@ extract_images() {
 }
 
 extract_pdf() {
-    local pdf
+    local pdf pages outfile
     pdf=$(pick_pdf)
-
     [ -z "$pdf" ] && return
 
-    read -rp "Pages (1-3 5 8): " pages
+    read -rp "Pages (e.g. 1-3 5 8): " pages
+    [ -z "$pages" ] && return
 
     outfile="${pdf%.pdf}_extract.pdf"
-
+    #baka: $pages intentionally unquoted — needs word splitting for "1-3 5 8"
     pdftk "$pdf" cat $pages output "$outfile"
-
     echo "Created: $outfile"
 }
 
 merge_pdfs() {
-    mapfile -t files < <(
-        find . -type f -iname "*.pdf" | fzf -m
-    )
-
+    local files outfile
+    mapfile -t files < <(pick_pdf -m)
     [ "${#files[@]}" -eq 0 ] && return
 
-    read -rp "Output name: " outfile
+    read -rp "Output filename: " outfile
+    [ -z "$outfile" ] && return
+    [[ "$outfile" != *.pdf ]] && outfile="${outfile}.pdf"
 
     pdftk "${files[@]}" cat output "$outfile"
+    echo "Created: $outfile"
+}
+
+compress_pdf() {
+    local pdf preset outfile
+    pdf=$(pick_pdf)
+    [ -z "$pdf" ] && return
+
+    preset=$(printf "screen (lowest)\nebook (medium)\nprinter (high)\nprepress (highest)" | fzf --header="Compression level")
+    [ -z "$preset" ] && return
+    #baka: strips parenthetical description, keeps just the preset keyword (screen/ebook/etc)
+    preset="${preset%% *}"
+
+    outfile="${pdf%.pdf}_compressed.pdf"
+    gs -sDEVICE=pdfwrite \
+       -dCompatibilityLevel=1.4 \
+       "-dPDFSETTINGS=/$preset" \
+       -dNOPAUSE -dQUIET -dBATCH \
+       -sOutputFile="$outfile" "$pdf"
 
     echo "Created: $outfile"
 }
 
-pdf_to_md() {
-    local pdf
+encrypt_pdf() {
+    local pdf owner_pw user_pw outfile
     pdf=$(pick_pdf)
-
     [ -z "$pdf" ] && return
 
-    txt="$TMPDIR/pdf.txt"
+    read -rsp "Owner password: " owner_pw
+    echo
+    [ -z "$owner_pw" ] && return
 
-    pdftotext "$pdf" "$txt"
+    read -rsp "User password (optional): " user_pw
+    echo
 
-    outfile="${pdf%.pdf}.md"
-
-    pandoc "$txt" -f plain -t markdown -o "$outfile"
-
+    outfile="${pdf%.pdf}_encrypted.pdf"
+    #baka: ${var:+...} expands to nothing if var is empty — skips user_pw flag when not set
+    pdftk "$pdf" output "$outfile" owner_pw "$owner_pw" ${user_pw:+user_pw "$user_pw"}
     echo "Created: $outfile"
 }
 
-pdf_to_org() {
-    local pdf
+decrypt_pdf() {
+    local pdf pw outfile
     pdf=$(pick_pdf)
-
     [ -z "$pdf" ] && return
 
-    txt="$TMPDIR/pdf.txt"
+    read -rsp "Password: " pw
+    echo
+    [ -z "$pw" ] && return
 
-    pdftotext "$pdf" "$txt"
+    outfile="${pdf%.pdf}_decrypted.pdf"
+    pdftk "$pdf" input_pw "$pw" output "$outfile"
+    echo "Created: $outfile"
+}
 
-    outfile="${pdf%.pdf}.org"
+rotate_pdf() {
+    local pdf dir outfile
+    pdf=$(pick_pdf)
+    [ -z "$pdf" ] && return
 
-    pandoc "$txt" -f plain -t org -o "$outfile"
+    dir=$(printf "east (90° clockwise)\nwest (90° counter-clockwise)\nsouth (180°)" | fzf --header="Rotate all pages by")
+    [ -z "$dir" ] && return
+    #baka: takes first word (east/west/south) before the space
+    dir="${dir%% *}"
 
+    outfile="${pdf%.pdf}_rotated.pdf"
+    #baka: pdftk rotation syntax: 1-endeast = all pages rotated east
+    pdftk "$pdf" cat "1-end${dir}" output "$outfile"
     echo "Created: $outfile"
 }
 
 dashboard() {
     while true; do
-
         choice=$(
             printf '%s\n' \
-            "Extract Images" \
-            "Extract PDF Pages" \
-            "Merge PDFs" \
-            "PDF -> Markdown" \
-            "PDF -> Org" \
-            "Quit" |
-            fzf --height=40%
+                "Extract Images" \
+                "Extract PDF Pages" \
+                "Merge PDFs" \
+                "Compress PDF" \
+                "Encrypt PDF" \
+                "Decrypt PDF" \
+                "Rotate Pages" \
+                "Quit" |
+            #baka: --height=40% makes fzf take 40% of terminal height instead of full screen
+            fzf --height=40% --header="PDF Dashboard"
         )
 
         case "$choice" in
-            "Extract Images")
-                extract_images
-                ;;
-            "Extract PDF Pages")
-                extract_pdf
-                ;;
-            "Merge PDFs")
-                merge_pdfs
-                ;;
-            "PDF -> Markdown")
-                pdf_to_md
-                ;;
-            "PDF -> Org")
-                pdf_to_org
-                ;;
-            "Quit")
-                exit 0
-                ;;
+            "Extract Images")     extract_images ;;
+            "Extract PDF Pages")  extract_pdf ;;
+            "Merge PDFs")         merge_pdfs ;;
+            "Compress PDF")       compress_pdf ;;
+            "Encrypt PDF")        encrypt_pdf ;;
+            "Decrypt PDF")        decrypt_pdf ;;
+            "Rotate Pages")       rotate_pdf ;;
+            "Quit")               exit 0 ;;
         esac
 
         read -rp "Press Enter..."
@@ -143,26 +184,3 @@ dashboard() {
 }
 
 dashboard
-
-
-# Possible Improvements
-#
-# You could make it much nicer with:
-#
-# preview selected PDF using pdftotext
-# page count detection via:
-# pdftk file.pdf dump_data | grep NumberOfPages
-# image format menu:
-# PNG
-# JPG
-# WEBP
-# OCR mode:
-# ocrmypdf input.pdf output.pdf
-# compress PDF:
-# gs -sDEVICE=pdfwrite
-# rotate pages:
-# pdftk in.pdf cat 1-endeast output out.pdf
-# encrypt/decrypt PDFs:
-# pdftk in.pdf output protected.pdf owner_pw secret
-#
-# If you use gum + fzf + bat, I can also make it look like a modern terminal dashboard with colored panels, previews, and keyboard shortcuts.

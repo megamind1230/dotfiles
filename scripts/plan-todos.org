@@ -1,0 +1,389 @@
+If you enjoy building terminal tools in Bash, here are 20 practical projects that range from beginner to surprisingly useful.
+
+## 1. PDF Dashboard
+
+The one you're already planning.
+
+Features:
+
+* Merge PDFs
+* Split PDFs
+* OCR
+* Compress
+* Convert formats
+
+Tools:
+`pdftk`, `pandoc`, `poppler-utils`, `ocrmypdf`
+
+Tools:
+`pdftk`, `pandoc`, `poppler-utils`, `ocrmypdf`
+
+---
+
+## 2. Notes Manager
+
+Personal knowledge base.
+
+Features:
+
+* Create notes
+* Search notes
+* Open in Neovim
+* Tag system
+* Export to PDF
+
+Tools:
+`fzf`, `ripgrep`, `pandoc`
+
+---
+
+## 3. Project Launcher
+
+Open coding projects instantly.
+
+Features:
+
+* Browse projects
+* Open Neovim
+* Open terminal in project
+* Git status preview
+
+Tools:
+`fzf`, `tmux`, `git`
+
+---
+
+## 4. Git Dashboard
+
+Interactive Git helper.
+
+Features:
+
+* Commit
+* Branch switch
+* Rebase
+* Stash manager
+* Diff preview
+
+Tools:
+`git`, `fzf`, `delta`
+
+---
+
+## 5. Screenshot Center
+
+For Linux/X11.
+
+Features:
+
+* Region screenshot
+* Full screen
+* Clipboard copy
+* OCR screenshot
+* Upload screenshot
+
+Tools:
+`scrot`, `xclip`, `tesseract`
+
+---
+
+## 6. Video Toolbox
+
+Features:
+
+* Convert formats
+* Extract audio
+* Compress videos
+* Create GIFs
+* Cut clips
+
+Tools:
+`ffmpeg`
+
+---
+
+## 7. Audio Studio
+
+Features:
+
+* Convert MP3/WAV
+* Normalize volume
+* Trim audio
+* Merge tracks
+
+Tools:
+`ffmpeg`, `sox`
+
+---
+
+## 8. Linux System Dashboard
+
+Features:
+
+* CPU usage
+* RAM usage
+* Disk usage
+* Temperature
+* Top processes
+
+Tools:
+`htop`, `sensors`
+
+---
+
+## 9. Backup Manager
+
+Features:
+
+* Scheduled backups
+* Incremental backups
+* Encryption
+* Restore menu
+
+Tools:
+`rsync`, `tar`, `gpg`
+
+---
+
+## 10. Student Attendance System
+
+Useful if you teach online.
+
+Features:
+
+* Record attendance
+* Search students
+* Generate reports
+* Export CSV
+
+Tools:
+pure bash + csv
+
+---
+
+## 11. Password Vault
+
+Local encrypted password manager.
+
+Features:
+
+* Store passwords
+* Copy to clipboard
+* Generate passwords
+* Encryption
+
+Tools:
+`gpg`, `xclip`
+
+---
+
+## 12. Docker Dashboard
+
+Features:
+
+* Start containers
+* Stop containers
+* Logs
+* Enter shell
+* Clean images
+
+Tools:
+Docker
+
+---
+
+## 13. Kubernetes Dashboard
+
+Features:
+
+* Pods
+* Logs
+* Restart deployments
+* Scale replicas
+
+Tools:
+Kubernetes
+
+---
+
+## 14. Download Manager
+
+Features:
+
+* Queue downloads
+* Resume downloads
+* YouTube downloads
+* History
+
+Tools:
+`wget`, `curl`, `yt-dlp`
+
+---
+
+## 15. Book Library Manager
+
+Features:
+
+* Track books
+* Search books
+* Open PDFs
+* Reading statistics
+
+---
+
+## 16. Expense Tracker
+
+Features:
+
+* Add expenses
+* Monthly reports
+* Categories
+* CSV export
+
+Tools:
+bash + awk
+
+---
+
+## 17. Habit Tracker
+
+Features:
+
+* Daily habits
+* Streak tracking
+* Calendar view
+* Statistics
+
+---
+
+## 18. Flashcards / Study Tool
+
+Features:
+
+* Question banks
+* Quiz mode
+* Spaced repetition
+* Score tracking
+
+Good for teaching programming.
+
+---
+
+## 19. Linux Package Center
+
+Features:
+
+* Install packages
+* Remove packages
+* Search packages
+* Update system
+
+Supports:
+
+* apt
+* pacman
+* dnf
+
+---
+
+## 20. Personal AI Command Center
+
+A terminal dashboard for your workflow.
+
+Features:
+
+* Open notes
+* Query local documents
+* Generate summaries
+* Launch projects
+* Quick scripts
+
+Menu example:
+
+```text
+┌─────────────────────┐
+│ Hassan Command Hub  │
+├─────────────────────┤
+│ Notes               │
+│ PDFs                │
+│ Projects            │
+│ Git                 │
+│ Screenshots         │
+│ Videos              │
+│ Flashcards          │
+│ Expenses            │
+│ System Monitor      │
+│ Quit                │
+└─────────────────────┘
+```
+
+---
+
+If your goal is to improve Bash skills specifically, the most educational projects are:
+
+1. Project Launcher
+2. Git Dashboard
+3. PDF Dashboard
+4. Backup Manager
+5. Password Vault
+6. Flashcard System
+7. Expense Tracker
+8. Download Manager
+9. Notes Manager
+10. Personal Command Center
+
+Together these teach menus, arrays, file handling, parsing, `awk`, `sed`, `grep`, `fzf`, external tools, and shell scripting patterns you'll actually reuse.
+
+---
+
+* * *
+
+# pdfdash — Implementation Notes
+
+## Overview
+
+Interactive terminal dashboard for common PDF operations using `fzf` + `pdftk` + `poppler-utils` + `ghostscript`.
+
+## Features (implemented)
+
+- [X] Pick PDF with fzf preview (file size, page count, text preview)
+- [X] Extract images (PNG/JPEG/TIFF) — all pages or custom range
+- [X] Extract PDF pages (subset of pages → new PDF)
+- [X] Merge multiple PDFs (multi-select via fzf -m)
+- [X] Compress PDF (screen/ebook/printer/prepress via ghostscript)
+- [X] Encrypt PDF (owner + optional user password)
+- [X] Decrypt PDF (remove password protection)
+- [X] Rotate pages (90° CW / 90° CCW / 180°)
+
+## Removed (pandoc-dependent)
+
+- [ ] PDF → Markdown  — requires pandoc (broken Haskell lib chain)
+- [ ] PDF → Org       — requires pandoc (broken Haskell lib chain)
+
+## Future Ideas
+
+- [ ] OCR mode (ocrmypdf)
+- [ ] Split PDF by page ranges into separate files
+- [ ] Batch mode — operate on all PDFs in a directory
+- [ ] Undo last operation / backup originals
+- [ ] Gum-based UI for colored panels (if gum is available)
+- [ ] Progress bar for long operations (gs compress, batch jobs)
+- [ ] Config file for default settings (compression preset, image format, etc.)
+
+## Development History
+
+1. Basic dashboard — extract pages, extract images (PNG only), merge, pandoc conversions
+2. Added fzf preview panel (file size, page count, text preview)
+3. Added image format selection (PNG/JPEG/TIFF)
+4. Added Compress, Encrypt, Decrypt, Rotate
+5. mktemp for unique temp files
+6. Auto-.pdf suffix on merge output
+7. Removed pandoc-dependent features (Haskell lib chain breakage)
+8. #baka comment markers for ambiguous code
+
+## Technical Debt
+
+- `set -euo pipefail` aborts on any failure
+- Ctrl+D at password prompt exits the script
+- No cleanup trap for TMPDIR
+- mktemp files orphaned if script crashes
