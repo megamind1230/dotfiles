@@ -115,6 +115,7 @@ fi
 
 [[ -f ~/.bashrc-personal ]] && . ~/.bashrc-personal
 [[ -f ~/.bashrc-aliases ]] && . ~/.bashrc-aliases
+[[ -f ~/.bashrc-functions ]] && . ~/.bashrc-functions
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"

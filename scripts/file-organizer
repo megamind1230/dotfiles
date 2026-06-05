@@ -434,7 +434,16 @@ main() {
     info "=== File Organizer v$VERSION ==="
     info "Source: ${SOURCE_DIR:-<none>}"
 
-    [[ -z "$SOURCE_DIR" ]] && die "--source is required."
+    if [[ -z "$SOURCE_DIR" ]]; then
+        read -r -e -p "Enter source directory path: " SOURCE_DIR
+        SOURCE_DIR="${SOURCE_DIR/#~/$HOME}"
+        while [[ -z "$SOURCE_DIR" || ! -d "$SOURCE_DIR" ]]; do
+            [[ -z "$SOURCE_DIR" ]] && msg "[ERROR] Path cannot be empty."
+            [[ -n "$SOURCE_DIR" && ! -d "$SOURCE_DIR" ]] && msg "[ERROR] Directory does not exist: $SOURCE_DIR"
+            read -r -e -p "Enter source directory path: " SOURCE_DIR
+            SOURCE_DIR="${SOURCE_DIR/#~/$HOME}"
+        done
+    fi
     [[ -d "$SOURCE_DIR" ]] || die "Source directory does not exist: $SOURCE_DIR"
 
     # Interactive mode (default when no action flags given)

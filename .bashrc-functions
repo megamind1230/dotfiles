@@ -1,0 +1,188 @@
+# functions
+
+
+# nvim config swticher
+alias nvimlazy="NVIM_APPNAME=LazyVim nvim"
+alias nvimkick="NVIM_APPNAME=KickStart nvim"
+alias nvimchad="NVIM_APPNAME=NvChad nvim"
+alias nvimastro="NVIM_APPNAME=AstroNvim nvim"
+alias one="NVIM_APPNAME=one nvim"
+# alias two="NVIM_APPNAME=two nvim"
+nvims() {
+  local items=("default" "KickStart" "LazyVim" "NvChad" "AstroNvim" "one" "two")
+  local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
+  if [[ -z "$config" ]]; then
+    echo "Nothing selected"
+    return 0
+  elif [[ "$config" == "default" ]]; then
+    config=""
+  fi
+  NVIM_APPNAME="$config" nvim "$@"
+}
+bind -x '"\eN":nvims'
+
+scriptsRun() {
+    local script
+    script=$(
+        for f in ~/scripts/*; do
+            [[ -f "$f" ]] && basename "$f"
+        done | fzf
+    )
+    [[ -z "$script" ]] && return
+    ~/scripts/"$script"
+}
+bind -x '"\eS":scriptsRun'
+
+rgnv() {
+    dir="$PWD"
+    result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
+        | fzf --ansi \
+              --phony \
+              --bind "change:reload:rg --hidden --line-number --no-heading --color=always -F {q} \"$dir\" || true" \
+              --delimiter : \
+              --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+              --preview-window=right:60%)
+    [ -z "$result" ] && return
+    file=$(echo "$result" | cut -d: -f1)
+    line=$(echo "$result" | cut -d: -f2)
+    nvim +"$line" "$file"
+}
+
+rgnvp() {
+    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    [ -z "$dir" ] && return
+    result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
+        | fzf --ansi \
+              --phony \
+              --bind "change:reload:rg --hidden --line-number --no-heading --color=always -F {q} \"$dir\" || true" \
+              --delimiter : \
+              --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+              --preview-window=right:60%)
+    [ -z "$result" ] && return
+    file=$(echo "$result" | cut -d: -f1)
+    line=$(echo "$result" | cut -d: -f2)
+    nvim +"$line" "$file"
+}
+
+fzy() {
+    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    [ -z "$dir" ] && return
+    yazi "$dir"
+}
+
+rgy() {
+    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    [ -z "$dir" ] && return
+    result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
+        | fzf --ansi \
+              --phony \
+              --bind "change:reload:rg --hidden --line-number --no-heading --color=always -F {q} \"$dir\" || true" \
+              --delimiter : \
+              --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+              --preview-window=right:60%)
+    [ -z "$result" ] && return
+    file=$(echo "$result" | cut -d: -f1)
+    parent=$(dirname "$file")
+    yazi "$parent"
+}
+
+
+ex() {
+    if [ -z "$1" ]; then
+        echo "Usage: ex <archive-file>"
+        return 1
+    fi
+    if [ ! -f "$1" ]; then
+        echo "File not found: $1"
+        return 1
+    fi
+    case "$1" in
+        *.tar)         tar -xvf "$1" ;;
+        *.tar.gz|*.tgz) tar -xzvf "$1" ;;
+        *.tar.bz2)     tar -xjvf "$1" ;;
+        *.tar.xz)      tar -xJvf "$1" ;;
+        *.zip)         unzip "$1" ;;
+        *.rar)         unrar x "$1" ;;
+        *.7z)          7z x "$1" ;;
+        *.gz)          gunzip "$1" ;;
+        *.bz2)         bunzip2 "$1" ;;
+        *) echo "Unsupported archive format." ;;
+    esac
+}
+
+compress() {
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: compress <output-file> <file-or-folder>"
+        return 1
+    fi
+    case "$1" in
+        *.tar)         tar -cvf "$1" "$2" ;;
+        *.tar.gz|*.tgz) tar -czvf "$1" "$2" ;;
+        *.tar.bz2)     tar -cjvf "$1" "$2" ;;
+        *.tar.xz)      tar -cJvf "$1" "$2" ;;
+        *.zip)         zip -r "$1" "$2" ;;
+        *.7z)          7z a "$1" "$2" ;;
+        *) echo "Unsupported archive format." ;;
+    esac
+}
+
+
+# quotes="/mnt/e/st/obsi/vault_bank/my-quotes.txt"
+quotes="/mnt/hdd/st/obsi/vault_bank/my-quotes.txt"
+function print_random_quote() {
+    if [ -f "$quotes" ]; then
+        # Get the number of lines in the file
+        local num_lines=$(wc -l < "$quotes")
+        # Generate a random line number
+        local random_line=$((RANDOM % num_lines + 1))
+        # Print the random line
+        sed -n "${random_line}p" "$quotes"
+    else
+        echo "quotes.txt not found in your home directory."
+    fi
+}
+# uncommnet to Call the function when bash starts
+# print_random_quote
+
+crondo() { # rondo with copy
+    while true; do
+        cd /mnt/hdd/hcore
+        local item
+
+        item=$(find . -maxdepth 1 -type f -printf '%f\n' | shuf -n 1)
+
+        if [[ -z "$item" ]]; then
+            echo "No files found in directory"
+            return 1
+        fi
+
+        echo "$item"
+        read -p "Move to Downloads? (y/N/q): " response
+
+        if [[ "$response" =~ ^[Qq]$ ]]; then
+            return 0
+        elif [[ "$response" =~ ^[Yy]$ ]]; then
+            mv -- "$item" "/home/dt/Downloads"
+            echo "Moved '$item' to Downloads"
+        else
+            mv -- "$item" "/mnt/hdd/hcoreExtend"
+            echo "Moved '$item' to /mnt/hdd/hcoreExtend"
+        fi
+        echo "-----------------------"
+    done
+}
+
+
+# helpers
+path() { echo -e "${PATH//:/\\n}"; }
+pubip() { curl -s ifconfig.me; echo; }
+ports() { ss -tulanp; }
+up() {
+    local d=""
+    for i in $(seq 1 "${1:-1}"); do d="../$d"; done
+    cd "$d"
+}
+
+
+# fzf setup (must load after fzf-based functions)
+eval "$(fzf --bash)"

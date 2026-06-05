@@ -21,68 +21,8 @@ export PATH="/home/dt/scripts/:$PATH"
 export PATH="$HOME/.dotnet/tools:$PATH"
 
 
-# autostart with bash
-# cal; date
-
-crondo() { # rondo with copy
-    while true; do
-        cd /mnt/hdd/hcore
-        local item
-
-        item=$(find . -maxdepth 1 -type f -printf '%f\n' | shuf -n 1)
-
-        if [[ -z "$item" ]]; then
-            echo "No files found in directory"
-            return 1
-        fi
-
-        echo "$item"
-        read -p "Move to Desktop? (y/N/q): " response
-
-        if [[ "$response" =~ ^[Qq]$ ]]; then
-            return 0
-        elif [[ "$response" =~ ^[Yy]$ ]]; then
-            mv -- "$item" "/home/dt/Desktop"
-            echo "Moved '$item' to Desktop"
-        else
-            mv -- "$item" "/mnt/hdd/hcoreExtend"
-            echo "Moved '$item' to /mnt/hdd/hcoreExtend"
-        fi
-        echo "-----------------------"
-    done
-}
-
 
 PATH="$PATH:/opt/nvim-linux-x86_64/bin"
-
-
-function print_random_quote() {
-    if [ -f "$quotes" ]; then
-        # Get the number of lines in the file
-        local num_lines=$(wc -l < "$quotes")
-        # Generate a random line number
-        local random_line=$((RANDOM % num_lines + 1))
-        # Print the random line
-        sed -n "${random_line}p" "$quotes"
-    else
-        echo "quotes.txt not found in your home directory."
-    fi
-}
-
-# uncommnet to Call the function when bash starts
-# print_random_quote
-
-# fzf in tldr pages
-fzft() {
-  local cmd
-  cmd=$(find ~/.local/share/tldr/pages -type f -name "*.md" | sed 's|.*/||; s|\.md||' | fzf --preview "tldr {1}" --preview-window=right:70%)
-  [ -n "$cmd" ] && tldr "$cmd"
-}
-c() {
-    read -p "Enter cht.sh query: " query
-    [[ -z "$query" ]] && return 1
-    cht.sh $query | sed 's/\x1b\[[0-9;]*m//g' | nvim -
-}
 
 # vi keybindings in bash
 # set -o vi
@@ -94,51 +34,6 @@ if [[ -f /mnt/hdd/words.txt ]] && [[ -s /mnt/hdd/words.txt ]]; then
   echo -e "\e[35m$(shuf -n 1 /mnt/hdd/words.txt)\e[0m"
 fi
 
-ex() {
-    if [ -z "$1" ]; then
-        echo "Usage: ex <archive-file>"
-        return 1
-    fi
-    if [ ! -f "$1" ]; then
-        echo "File not found: $1"
-        return 1
-    fi
-    case "$1" in
-        *.tar)         tar -xvf "$1" ;;
-        *.tar.gz|*.tgz) tar -xzvf "$1" ;;
-        *.tar.bz2)     tar -xjvf "$1" ;;
-        *.tar.xz)      tar -xJvf "$1" ;;
-        *.zip)         unzip "$1" ;;
-        *.rar)         unrar x "$1" ;;
-        *.7z)          7z x "$1" ;;
-        *.gz)          gunzip "$1" ;;
-        *.bz2)         bunzip2 "$1" ;;
-        *) echo "Unsupported archive format." ;;
-    esac
-}
 
-compress() {
-    if [ -z "$1" ] || [ -z "$2" ]; then
-        echo "Usage: compress <output-file> <file-or-folder>"
-        return 1
-    fi
-    case "$1" in
-        *.tar)         tar -cvf "$1" "$2" ;;
-        *.tar.gz|*.tgz) tar -czvf "$1" "$2" ;;
-        *.tar.bz2)     tar -cjvf "$1" "$2" ;;
-        *.tar.xz)      tar -cJvf "$1" "$2" ;;
-        *.zip)         zip -r "$1" "$2" ;;
-        *.7z)          7z a "$1" "$2" ;;
-        *) echo "Unsupported archive format." ;;
-    esac
-}
-
-# helpers
-path() { echo -e "${PATH//:/\\n}"; }
-pubip() { curl -s ifconfig.me; echo; }
-ports() { ss -tulanp; }
-up() {
-    local d=""
-    for i in $(seq 1 "${1:-1}"); do d="../$d"; done
-    cd "$d"
-}
+## things to autostart with bash
+# cal; date
