@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+
+# make sure installed: pdftk poppler-utils pandoc fzf
+
+set -euo pipefail
+
+TMPDIR="/tmp/pdfdash"
+
+mkdir -p "$TMPDIR"
+
+pick_pdf() {
+    find . -type f -iname "*.pdf" | fzf
+}
+
+extract_images() {
+    local pdf
+    pdf=$(pick_pdf)
+
+    [ -z "$pdf" ] && return
+
+    pages=$(printf "all\ncustom" | fzf)
+
+    outdir="${pdf%.pdf}_images"
+    mkdir -p "$outdir"
+
+    if [[ "$pages" == "all" ]]; then
+        pdftoppm -png "$pdf" "$outdir/page"
+    else
+        read -rp "Pages (example 1-5 or 2,4,6): " range
+
+        tmp="$TMPDIR/tmp_extract.pdf"
+
+        pdftk "$pdf" cat "$range" output "$tmp"
+
+        pdftoppm -png "$tmp" "$outdir/page"
+
+        rm -f "$tmp"
+    fi
+
+    echo "Saved to: $outdir"
+}
+
+extract_pdf() {
+    local pdf
+    pdf=$(pick_pdf)
+
+    [ -z "$pdf" ] && return
+
+    read -rp "Pages (1-3 5 8): " pages
+
+    outfile="${pdf%.pdf}_extract.pdf"
+
+    pdftk "$pdf" cat $pages output "$outfile"
+
+    echo "Created: $outfile"
+}
+
+merge_pdfs() {
+    mapfile -t files < <(
+        find . -type f -iname "*.pdf" | fzf -m
+    )
+
+    [ "${#files[@]}" -eq 0 ] && return
+
+    read -rp "Output name: " outfile
+
+    pdftk "${files[@]}" cat output "$outfile"
+
+    echo "Created: $outfile"
+}
+
+pdf_to_md() {
+    local pdf
+    pdf=$(pick_pdf)
+
+    [ -z "$pdf" ] && return
+
+    txt="$TMPDIR/pdf.txt"
+
+    pdftotext "$pdf" "$txt"
+
+    outfile="${pdf%.pdf}.md"
+
+    pandoc "$txt" -f plain -t markdown -o "$outfile"
+
+    echo "Created: $outfile"
+}
+
+pdf_to_org() {
+    local pdf
+    pdf=$(pick_pdf)
+
+    [ -z "$pdf" ] && return
+
+    txt="$TMPDIR/pdf.txt"
+
+    pdftotext "$pdf" "$txt"
+
+    outfile="${pdf%.pdf}.org"
+
+    pandoc "$txt" -f plain -t org -o "$outfile"
+
+    echo "Created: $outfile"
+}
+
+dashboard() {
+    while true; do
+
+        choice=$(
+            printf '%s\n' \
+            "Extract Images" \
+            "Extract PDF Pages" \
+            "Merge PDFs" \
+            "PDF -> Markdown" \
+            "PDF -> Org" \
+            "Quit" |
+            fzf --height=40%
+        )
+
+        case "$choice" in
+            "Extract Images")
+                extract_images
+                ;;
+            "Extract PDF Pages")
+                extract_pdf
+                ;;
+            "Merge PDFs")
+                merge_pdfs
+                ;;
+            "PDF -> Markdown")
+                pdf_to_md
+                ;;
+            "PDF -> Org")
+                pdf_to_org
+                ;;
+            "Quit")
+                exit 0
+                ;;
+        esac
+
+        read -rp "Press Enter..."
+    done
+}
+
+dashboard
+
+
+# Possible Improvements
+#
+# You could make it much nicer with:
+#
+# preview selected PDF using pdftotext
+# page count detection via:
+# pdftk file.pdf dump_data | grep NumberOfPages
+# image format menu:
+# PNG
+# JPG
+# WEBP
+# OCR mode:
+# ocrmypdf input.pdf output.pdf
+# compress PDF:
+# gs -sDEVICE=pdfwrite
+# rotate pages:
+# pdftk in.pdf cat 1-endeast output out.pdf
+# encrypt/decrypt PDFs:
+# pdftk in.pdf output protected.pdf owner_pw secret
+#
+# If you use gum + fzf + bat, I can also make it look like a modern terminal dashboard with colored panels, previews, and keyboard shortcuts.
