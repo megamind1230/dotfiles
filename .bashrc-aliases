@@ -13,6 +13,7 @@ fastnote="$obsidot/fast-note.md"
 # nvim things
 alias nb=' $my_active_nvim ~/.bashrc'
 alias nba=' $my_active_nvim ~/.bashrc-aliases'
+alias nbf=' $my_active_nvim ~/.bashrc-functions'
 alias nbp='$my_active_nvim ~/.bashrc-personal'
 alias nv='$my_active_nvim ~/.config/nvim/init.lua'
 alias nqtile='$my_active_nvim ~/.config/qtile/config.py'
@@ -33,17 +34,12 @@ alias sb='source ~/.bashrc'
 # anki
 alias anki='/home/dt/anki-launcher-25.09-linux/anki'
 
-# pacman & aur helpers
-alias inst='sudo pacman -S'
-alias pinst='paru -S'
-alias yinst='yay -S'
-alias search='pacman -Ss'
-alias ysearch='yay -Ss'
-alias psearch='paru -Ss'
 
 ## faster
 # alias date="date +'%d-%m-%Y %a @ %r'"
 
+# git
+alias gst="git status"
 # safer remove and cut/move
 alias rm="rm -i --preserve-root"
 alias mv="mv -i"
@@ -158,3 +154,8 @@ tmux attach -t baka;                           # Attach to session
 '
 alias bakat='tmux a -t baka'
 
+
+
+# capslock on/off remap for video editing damon
+alias mmon='sudo systemctl start capslock-mouse-remap.service'
+alias mmoff='sudo systemctl stop capslock-mouse-remap.service'

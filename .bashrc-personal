@@ -5,6 +5,7 @@ PS1='\e[3;33m(\@)\e[m\u:\h\e[1;36m[\w]\e[m$ '
 
 export EDITOR='nvim'
 export VISUAL='nvim'
+export BROWSER='brave'
 
 export TERMINAL=/usr/bin/kitty
 
@@ -37,3 +38,7 @@ fi
 
 ## things to autostart with bash
 # cal; date
+
+
+export SCREENREC_AUDIO_SINK=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor
+export SCREENREC_AUDIO_SOURCE=alsa_input.pci-0000_00_1b.0.analog-stereo

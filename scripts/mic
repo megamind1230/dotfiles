@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+# mic-capture — record mic with noise reduction, EQ, compression, and limiting.
+# Depends on: ffmpeg, pactl (PulseAudio or PipeWire-pulse), p_lib_session.sh
+# Compatible with: X11 and Wayland (PulseAudio / PipeWire-pulse backend)
+set -e
+
+# ---------------------------------------------------------------------------
+# Resolve library
+# ---------------------------------------------------------------------------
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+. "$script_dir/p_lib_session.sh"
+
+# ---------------------------------------------------------------------------
+# Output path
+# ---------------------------------------------------------------------------
+DIR="$(get_recordings_dir)"
+mkdir -p "$DIR"
+DATE=$(date "+%FT%H-%M-%S")
+FILE="$DIR/$DATE.m4a"
+
+# ---------------------------------------------------------------------------
+# Audio source detection
+# Override by exporting SCREENREC_AUDIO_SOURCE before running.
+# ---------------------------------------------------------------------------
+SOURCE="$(get_audio_source)"
+if [ -z "$SOURCE" ]; then
+  echo "Error: Could not detect audio source." \
+       "(Is PulseAudio or PipeWire-pulse running?)" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# PulseAudio-compatible input flag
+# Both PulseAudio and PipeWire-pulse expose the same 'pulse' FFMPEG device.
+# We always use -f pulse; PipeWire-pulse makes it transparent on Wayland.
+# ---------------------------------------------------------------------------
+PULSE_FLAGS="-f pulse"
+
+# ---------------------------------------------------------------------------
+# Filter chain — each stage is documented individually
+# ---------------------------------------------------------------------------
+
+# 1. MONO → STEREO
+#    Most mics are mono (single capsule). Map channel 0 to both L and R.
+#    If your mic is already stereo, this is still safe (pan ignores extra ch).
+A0_STEREO="pan=stereo|c0=c0|c1=c0"
+
+# 2. BANDWIDTH TRIM
+#    - highpass @100 Hz: removes rumble, desk thumps, A/C hum fundamentals.
+#    - lowpass  @16 kHz: mic self-noise and hiss live above here; cut it.
+#    Using 2-pole (order=2) for a gentler 12 dB/oct slope — avoids ringing.
+A0_PASS="highpass=f=100:poles=2, lowpass=f=16000:poles=2"
+
+# 3. ADAPTIVE NOISE REDUCTION  (afftdn)
+#    nr  = noise reduction strength 0–97.  12 is mild; avoids artefacts.
+#    nf  = noise floor in dBFS.  -60 suits most USB/built-in mics.
+#         Lower (e.g. -70) = more aggressive but may produce metallic artifacts.
+#    tn  = track noise floor over time — essential for live capture so the
+#         filter continuously re-learns the noise without a dedicated
+#         silence window (unlike the broken sn start/stop approach).
+#    om  = output mode 1 = output cleaned signal (not residual).
+A0_DENOISE="afftdn=nr=12:nf=-60:tn=1:om=o"
+
+# 4. CLICK / POP REMOVAL
+#    Removes electrical pops, mouth clicks, and consonant plosives.
+#    w=55 (window), t=5 (threshold, lower = more sensitive).
+A0_DECLICK="adeclick=w=55:t=5"
+
+# 5. DE-ESSER
+#    Tames sibilance (harsh S/T/SH sounds) without dulling the whole top end.
+A0_DEESS="deesser=i=0.5:m=0.5"
+
+# 6. EQ — voice-optimised
+#    Goal: clear, present voice; cut the typical problem frequencies.
+#    - 100–250 Hz: slight low-mid cut → less "boxy" room buildup.
+#    - 300–500 Hz: proximity-effect warmth cut for close-mic boom.
+#    - 2–4  kHz:   gentle presence boost → better intelligibility.
+#    - 6–8  kHz:   slight air boost → perceived clarity.
+#    firequalizer uses a FIR linear-phase filter (no phase smear).
+A0_EQ="firequalizer=gain_entry='\
+entry(20,0);\
+entry(100,-1);\
+entry(200,-3);\
+entry(350,-4);\
+entry(500,-2);\
+entry(800,-1);\
+entry(1000,0);\
+entry(2000,1);\
+entry(3000,2);\
+entry(4000,1.5);\
+entry(6000,1);\
+entry(8000,0.5);\
+entry(12000,0);\
+entry(16000,0)'"
+
+# 7. COMPRESSOR / EXPANDER  (compand)
+#    Two-stage approach:
+#      a) Downward expansion below -55 dBFS (silence gate) — suppresses
+#         noise floor and breath noise between sentences.
+#      b) Soft-knee compression above -40 dBFS — gentle, transparent levelling.
+#    Format: attack|attack : release|release : in/out|in/out ...
+#    Attacks/releases are per-channel (L|R).
+#    Delay=0.01 (10 ms lookahead) smooths fast transients.
+A0_COMPAND="\
+compand=\
+attacks=0.005|0.005:\
+decays=0.15|0.15:\
+points=\
+-90/-90|\
+-55/-80|\
+-40/-38|\
+-30/-26|\
+-20/-16|\
+-10/-8|\
+0/-6|\
+20/-3:\
+soft-knee=6:\
+delay=0.01"
+
+# 8. LOUDNESS NORMALISATION (optional gentle boost)
+#    Compensates for quiet mics. 2 dB is conservative.
+A0_GAIN="volume=2dB"
+
+# 9. TRUE-PEAK LIMITER
+#    Hard ceiling at -2 dBFS true-peak. level=false keeps it as a brick-wall
+#    limiter rather than a normaliser (no auto-gain riding).
+#    attack/release in ms.
+A0_LIMIT="alimiter=level=false:limit=-2dB:attack=1:release=50"
+
+# ---------------------------------------------------------------------------
+# Assemble filter_complex graph
+# ---------------------------------------------------------------------------
+A0_FILTER="\
+[0:a]\
+$A0_STEREO,\
+$A0_PASS,\
+$A0_DENOISE,\
+$A0_DECLICK,\
+$A0_DEESS,\
+$A0_EQ,\
+$A0_COMPAND,\
+$A0_GAIN,\
+$A0_LIMIT\
+[mic]"
+
+# ---------------------------------------------------------------------------
+# Run
+# ---------------------------------------------------------------------------
+echo "Source  : $SOURCE"
+echo "Output  : $FILE"
+echo "Press Ctrl+C to stop recording."
+echo
+
+# -thread_queue_size 512  — prevents "Thread message queue blocking" warnings
+#                           on slower machines by giving the input more buffer.
+# -aac_coder twoloop     — better quality at the same bitrate vs default fast.
+# -b:a 128k              — 128 kbps AAC is transparent for voice; 192 is fine
+#                           too but wastes space. Change if you prefer.
+ffmpeg \
+  $PULSE_FLAGS \
+  -thread_queue_size 512 \
+  -i "$SOURCE" \
+  -filter_complex "$A0_FILTER" \
+  -map "[mic]" \
+  -ac 2 \
+  -c:a aac \
+  -aac_coder twoloop \
+  -b:a 128k \
+  "$FILE"

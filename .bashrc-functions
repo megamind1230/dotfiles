@@ -1,5 +1,13 @@
 # functions
 
+# pacman & aur helpers Install
+inst()  { sudo pacman -S "$@"; }
+pinst() { paru -S "$@"; }
+# yinst() { yay -S "$@"; }
+# Search (bottom-up)
+search()  { pacman -Ss "$@" | tac; }
+psearch() { paru -Ss "$@" | tac; }
+# ysearch() { yay -Ss "$@" | tac; }
 
 # nvim config swticher
 alias nvimlazy="NVIM_APPNAME=LazyVim nvim"

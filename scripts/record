@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+# record — interactive launcher that runs screenrecord (or screenrecord-audio)
+#           + mic simultaneously, then merges them into a single .mp4.
+#
+# Depends on: ffmpeg, screenrecord, screenrecord-audio, mic, p_lib_session.sh
+# Place this script in the same directory as the others.
+set -e
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+. "$script_dir/p_lib_session.sh"
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+die() { echo "Error: $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Prompt: choose recording mode
+# ---------------------------------------------------------------------------
+echo ""
+echo "  ┌─────────────────────────────────┐"
+echo "  │         record launcher         │"
+echo "  ├─────────────────────────────────┤"
+echo "  │  1)  screen only                │"
+echo "  │  2)  screen + desktop audio     │"
+echo "  └─────────────────────────────────┘"
+echo ""
+printf "  Choose [1/2]: "
+read -r choice
+
+case "$choice" in
+  1) SCREEN_SCRIPT="$script_dir/screenrecord"       ; MODE_LABEL="screen only"            ;;
+  2) SCREEN_SCRIPT="$script_dir/screenrecord-audio" ; MODE_LABEL="screen + desktop audio" ;;
+  *) die "Invalid choice '$choice'. Run again and enter 1 or 2." ;;
+esac
+
+[ -x "$SCREEN_SCRIPT" ] || die "$SCREEN_SCRIPT not found or not executable."
+[ -x "$script_dir/mic" ] || die "$script_dir/mic not found or not executable."
+
+# ---------------------------------------------------------------------------
+# Shared timestamp → both temp files get the same base name
+# ---------------------------------------------------------------------------
+DIR="$(get_recordings_dir)"
+mkdir -p "$DIR"
+DATE=$(date "+%FT%H-%M-%S")
+
+VIDEO_TMP="$DIR/${DATE}_video.mp4"
+AUDIO_TMP="$DIR/${DATE}_mic.m4a"
+FINAL="$DIR/${DATE}_final.mp4"
+
+# ---------------------------------------------------------------------------
+# Override output paths so both sub-scripts write to our temp filenames
+# instead of picking their own timestamps.
+# We do this by temporarily wrapping them in a subshell that redefines
+# get_recordings_dir and intercepts the FILE variable via env overrides.
+#
+# Simpler approach: call the scripts with env vars that redirect their output.
+# Both scripts use:  FILE="$DIR/$DATE.ext"   where DIR = get_recordings_dir()
+# We can't easily override FILE from outside, so we call them via a thin
+# wrapper function that sources the library and replaces get_recordings_dir.
+# ---------------------------------------------------------------------------
+
+run_screen() {
+  # Source the script in a subshell with get_recordings_dir overridden so
+  # the output file lands at $VIDEO_TMP.
+  (
+    get_recordings_dir() { dirname "$VIDEO_TMP"; }
+    # Redefine DATE so the timestamp matches our chosen name.
+    DATE="$(basename "$VIDEO_TMP" .mp4 | sed 's/_video$//')"
+    export DATE
+    # shellcheck disable=SC1090
+    . "$SCREEN_SCRIPT"
+  )
+}
+
+run_mic() {
+  (
+    get_recordings_dir() { dirname "$AUDIO_TMP"; }
+    DATE="$(basename "$AUDIO_TMP" .m4a | sed 's/_mic$//')"
+    export DATE
+    # shellcheck disable=SC1090
+    . "$script_dir/mic"
+  )
+}
+
+# ---------------------------------------------------------------------------
+# Sourcing the sub-scripts in subshells doesn't work cleanly when they use
+# exec or when set -e propagates. Safer: rewrite FILE inside a wrapper that
+# simply calls the script but replaces the output path using sed on-the-fly
+# into a temp copy. We use a named-pipe approach instead:
+#
+# Actually the cleanest solution: generate minimal wrapper scripts on-the-fly
+# that source p_lib_session.sh with get_recordings_dir overridden to a
+# specific single directory, and set DATE to produce the exact filenames we
+# want. Then exec the real script body.
+# ---------------------------------------------------------------------------
+
+# Clean up temp wrapper scripts on exit
+TMPDIR_WRAP="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMPDIR_WRAP"
+}
+trap cleanup EXIT
+
+make_wrapper() {
+  local target_script="$1"   # original script path
+  local out_file="$2"        # desired output path
+  local out_ext="${out_file##*.}"
+  local out_dir
+  out_dir="$(dirname "$out_file")"
+  local out_base
+  out_base="$(basename "$out_file" ".$out_ext")"
+
+  local wrapper="$TMPDIR_WRAP/$(basename "$target_script")_wrap.sh"
+
+  cat > "$wrapper" <<WRAPPER
+#!/usr/bin/env bash
+set -e
+script_dir="$script_dir"
+
+# Override library functions before sourcing the real script
+get_recordings_dir() { echo "$out_dir"; }
+DATE="$out_base"
+
+# Pull in the library so overridden functions are visible to the real script
+. "$script_dir/p_lib_session.sh"
+
+# Re-apply overrides after library sourcing (library may redefine nothing,
+# but be safe).
+get_recordings_dir() { echo "$out_dir"; }
+DATE="$out_base"
+
+# Now inline the real script body (skip its shebang and its own library
+# sourcing lines so our overrides survive).
+SKIP_LIB=1
+$(sed '1{/^#!/d}' "$target_script" \
+  | grep -v 'p_lib_session' \
+  | grep -v '^script_dir=' \
+  | grep -v '^\. "\$script_dir' \
+  | grep -v "^DATE=")
+WRAPPER
+
+  chmod +x "$wrapper"
+  echo "$wrapper"
+}
+
+VIDEO_WRAPPER="$(make_wrapper "$SCREEN_SCRIPT" "$VIDEO_TMP")"
+AUDIO_WRAPPER="$(make_wrapper "$script_dir/mic"  "$AUDIO_TMP")"
+
+# ---------------------------------------------------------------------------
+# Trap Ctrl+C: forward SIGINT to both children, then wait for them to finish
+# ---------------------------------------------------------------------------
+VIDEO_PID=""
+AUDIO_PID=""
+
+stop_all() {
+  echo ""
+  echo "  Stopping recordings…"
+  [ -n "$VIDEO_PID" ] && kill -INT "$VIDEO_PID" 2>/dev/null || true
+  [ -n "$AUDIO_PID" ] && kill -INT "$AUDIO_PID" 2>/dev/null || true
+}
+
+trap stop_all INT
+
+# ---------------------------------------------------------------------------
+# Launch both recordings in the background
+# ---------------------------------------------------------------------------
+echo ""
+echo "  Mode    : $MODE_LABEL"
+echo "  Video   : $VIDEO_TMP"
+echo "  Audio   : $AUDIO_TMP"
+echo "  Final   : $FINAL"
+echo ""
+echo "  Both recordings are running. Press Ctrl+C to stop."
+echo ""
+
+bash "$VIDEO_WRAPPER" &
+VIDEO_PID=$!
+
+bash "$AUDIO_WRAPPER" &
+AUDIO_PID=$!
+
+# Wait for both to finish (they exit after receiving SIGINT)
+wait "$VIDEO_PID" 2>/dev/null || true
+wait "$AUDIO_PID" 2>/dev/null || true
+
+echo ""
+echo "  Recordings stopped."
+
+# ---------------------------------------------------------------------------
+# Sanity-check: both files must exist and be non-empty
+# ---------------------------------------------------------------------------
+[ -s "$VIDEO_TMP" ] || die "Video file missing or empty: $VIDEO_TMP"
+[ -s "$AUDIO_TMP" ] || die "Audio file missing or empty: $AUDIO_TMP"
+
+# ---------------------------------------------------------------------------
+# Merge: replace (or mix) audio tracks
+#
+# Strategy depends on mode:
+#   screen only        → video has NO audio → just mux mic track in
+#   screen + desktop   → video already has desktop audio → amerge mic on top
+#
+# In both cases the mic audio from $AUDIO_TMP is the processed .m4a that
+# already went through the full filter chain (noise reduction, EQ, etc.).
+# ---------------------------------------------------------------------------
+echo ""
+echo "  Merging video + mic audio…"
+
+if [ "$choice" = "1" ]; then
+  # No existing audio in the video — simple mux
+  ffmpeg -y \
+    -i "$VIDEO_TMP" \
+    -i "$AUDIO_TMP" \
+    -map 0:v \
+    -map 1:a \
+    -c:v copy \
+    -c:a copy \
+    -shortest \
+    "$FINAL"
+else
+  # Desktop audio already in video — mix it with mic using amerge + pan
+  # amerge joins the two stereo streams into a 4-channel stream;
+  # pan folds them back to stereo at equal weight (adjust coeffs if needed).
+  ffmpeg -y \
+    -i "$VIDEO_TMP" \
+    -i "$AUDIO_TMP" \
+    -filter_complex \
+      "[0:a][1:a]amerge=inputs=2,pan=stereo|c0=0.5*c0+0.5*c2|c1=0.5*c1+0.5*c3[aout]" \
+    -map 0:v \
+    -map "[aout]" \
+    -c:v copy \
+    -c:a aac \
+    -b:a 192k \
+    -shortest \
+    "$FINAL"
+fi
+
+# ---------------------------------------------------------------------------
+# Clean up temp files
+# ---------------------------------------------------------------------------
+rm -f "$VIDEO_TMP" "$AUDIO_TMP"
+
+echo ""
+echo "  ✓ Done!  →  $FINAL"
+echo ""

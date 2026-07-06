@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -e
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+. "$script_dir/p_lib_session.sh"
+
+DIR="$(get_recordings_dir)"
+mkdir -p "$DIR"
+
+DATE=$(date "+%FT%H-%M-%S")
+FILE="$DIR/$DATE.mp4"
+
+SINK="$(get_audio_sink_monitor)"
+if [ -z "$SINK" ]; then
+  echo "Could not detect audio sink (is PulseAudio/PipeWire running?)" >&2
+  exit 1
+fi
+
+echo "Recording to: $FILE"
+echo "Audio sink: $SINK"
+echo "Audio: desktop (system sounds)"
+echo "Press Ctrl+C to stop"
+
+case "$(detect_compositor)" in
+  hyprland)
+    exec wl-screenrec --audio --audio-device "$SINK" --filename "$FILE"
+    ;;
+  sway|wayland)
+    exec wf-recorder -a "@DEFAULT_SINK@" -x yuv420p -c libx264 -p crf=0 -p preset=ultrafast -f "$FILE"
+    ;;
+  i3|x11)
+    read -r MON_W MON_H <<< "$(get_monitor_dimensions)"
+    exec ffmpeg -f x11grab -framerate 60 -video_size "${MON_W}x${MON_H}" \
+      -i :0.0 -draw_mouse 1 \
+      -f pulse -i "$SINK" -c:a aac -b:a 192k \
+      -c:v libx264 -crf 0 -preset ultrafast "$FILE"
+    ;;
+  *)
+    echo "Unsupported compositor: $(detect_compositor)" >&2
+    exit 1
+    ;;
+esac

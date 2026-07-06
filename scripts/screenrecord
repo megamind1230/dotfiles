@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -e
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+. "$script_dir/p_lib_session.sh"
+
+DIR="$(get_recordings_dir)"
+mkdir -p "$DIR"
+
+DATE=$(date "+%FT%H-%M-%S")
+FILE="$DIR/$DATE.mp4"
+
+echo "Recording to: $FILE"
+echo "Audio: none"
+echo "Press Ctrl+C to stop"
+
+case "$(detect_compositor)" in
+  hyprland)
+    exec wl-screenrec --filename "$FILE"
+    ;;
+  sway|wayland)
+    exec wf-recorder --file="$FILE"
+    ;;
+  i3|x11)
+    read -r MON_W MON_H <<< "$(get_monitor_dimensions)"
+    exec ffmpeg -f x11grab -framerate 60 -video_size "${MON_W}x${MON_H}" \
+      -i :0.0 -draw_mouse 1 -c:v libx264 -crf 0 -preset ultrafast "$FILE"
+    ;;
+  *)
+    echo "Unsupported compositor: $(detect_compositor)" >&2
+    exit 1
+    ;;
+esac

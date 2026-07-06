@@ -34,10 +34,10 @@ map("n","<leader>nv", ":e $HOME/.config/nvim<Cr>", {desc = "go config"}) --go co
 -- vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centered)" })
 --
     -- -- Better paste behavior
--- vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
+vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
 --
     -- -- Delete without yanking
--- vim.keymap.set({ "n", "v" }, "<leader>d", '"_d', { desc = "Delete without yanking" })
+vim.keymap.set({ "n", "v" }, "<leader>d", '"_d', { desc = "Delete without yanking" })
 --
     -- -- Buffer navigation
 -- vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { desc = "Next buffer" })
@@ -74,3 +74,51 @@ map("n","<leader>nv", ":e $HOME/.config/nvim<Cr>", {desc = "go config"}) --go co
     -- -- Better J behavior
 -- vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines and keep cursor position" })
 
+
+-- local recenter_state = 0
+--
+-- local function emacs_ctrl_l()
+--     vim.cmd("redraw!")
+--
+--     if recenter_state == 0 then
+--         vim.cmd("normal! zz")
+--     elseif recenter_state == 1 then
+--         vim.cmd("normal! zt")
+--     else
+--         vim.cmd("normal! zb")
+--     end
+--
+--     recenter_state = (recenter_state + 1) % 3
+-- end
+--
+-- vim.keymap.set("n", "<C-l>", emacs_ctrl_l)
+
+local recenter_state = 0
+
+local function recenter_top_bottom()
+    local win = 0
+    local cur = vim.fn.line('.')
+    local height = vim.api.nvim_win_get_height(win)
+
+    if recenter_state == 0 then
+        -- center
+        vim.cmd('normal! zz')
+
+    elseif recenter_state == 1 then
+        -- top
+        vim.api.nvim_win_set_cursor(win, { cur, 0 })
+        vim.cmd('normal! zt')
+
+    else
+        -- bottom
+        local topline = math.max(1, cur - height + 1)
+        vim.fn.winrestview({
+            topline = topline,
+            lnum = cur,
+        })
+    end
+
+    recenter_state = (recenter_state + 1) % 3
+end
+
+vim.keymap.set("n", "<C-l>", recenter_top_bottom)
