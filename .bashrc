@@ -123,3 +123,26 @@ fi
 
 # opencode
 export PATH=/home/dt/.opencode/bin:$PATH
+
+
+
+# exports & PATH
+export MANPAGER='nvim +Man!'
+export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
+export EDITOR='nvim'
+export VISUAL='nvim'
+export BROWSER='brave'
+export TERMINAL=/usr/bin/kitty
+# for lunar vim 
+export PATH=/home/dt/.local/bin:$PATH
+# for doom
+# export PATH=/home/dt/.config/emacs/bin:$PATH
+export PATH="$HOME/.config/emacs/bin:$PATH"
+export PATH="$HOME/.emacs.d/bin:$PATH"
+# add scripts folder to my path
+export PATH="/home/dt/scripts/:$PATH"
+# add dotnet tools
+export PATH="$HOME/.dotnet/tools:$PATH"
+PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+export SCREENREC_AUDIO_SINK=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor
+export SCREENREC_AUDIO_SOURCE=alsa_input.pci-0000_00_1b.0.analog-stereo

@@ -49,6 +49,11 @@
 (setq vc-follow-symlinks t) ;; Always follow symlinks, no prompt
 ;;(windmove-default-keybindings) ;; shift+arrow to change window
 
+;; --------------------
+;; highlight current line
+;; --------------------
+(global-hl-line-mode 1)
+
 ;; updated: XDG-compliant cache/state dirs (replaces disabled backup block above)
 (defconst dt/cache-dir
   (expand-file-name "emacs/" (or (getenv "XDG_CACHE_HOME") "~/.cache/")))
@@ -208,8 +213,7 @@
 ;; (setq dashboard-set-init-info nil)
 (setq initial-major-mode 'org-mode)
 (setq inhibit-startup-screen t)
-(setq initial-scratch-message
-      "")
+(setq initial-scratch-message "")
 
 
 ;; ;; org
@@ -246,7 +250,7 @@
 ;; Org basics
 ;; --------------------
 (require 'org)
-(setq org-directory (expand-file-name "/mnt/hdd/st/obsi/vault_bank/org"))
+(setq org-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/org"))
 (setq org-agenda-files (list org-directory))
 ;; Default notes file (important!)
 (setq org-default-notes-file
@@ -303,7 +307,7 @@
 ;; theme
 ;; --------------------
 ;; (Load-theme 'solarized-dark t)
-(load-theme 'leuven-dark t)
+;; (load-theme 'leuven-dark t)
 
 
 ;; --------------------
@@ -491,11 +495,20 @@
   (setq corfu-on-exact-match nil)
   (global-corfu-mode 1)
 
-  (define-key corfu-map (kbd "TAB") #'corfu-next)
-  (define-key corfu-map (kbd "<tab>") #'corfu-next)
-  (define-key corfu-map (kbd "S-TAB") #'corfu-previous)
-  (define-key corfu-map (kbd "<backtab>") #'corfu-previous)
-  (define-key corfu-map (kbd "RET") #'corfu-insert)
+  ;; (define-key corfu-map (kbd "C-n") #'corfu-next)
+  ;; (define-key corfu-map (kbd "C-p") #'corfu-previous)
+  ;; (define-key corfu-map (kbd "C-y") #'corfu-insert)
+
+  ;; new:
+  ;; (evil-define-key 'insert corfu-map
+  ;;   (kbd "C-n") #'corfu-next
+  ;;   (kbd "C-p") #'corfu-previous
+  ;;   (kbd "C-y") #'corfu-insert)
+
+  ;; replace evil-define-key block with:
+  (define-key evil-insert-state-map (kbd "C-n") #'corfu-next)
+  (define-key evil-insert-state-map (kbd "C-p") #'corfu-previous)
+  (define-key evil-insert-state-map (kbd "C-y") #'corfu-insert)
 
   (unless (display-graphic-p)
     (when (require 'corfu-terminal nil t)
@@ -506,25 +519,42 @@
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
+(defun yas-completion-at-point ()
+  "Yasnippet completion at point."
+  (when-let* ((tables (yas--get-snippet-tables))
+              (bounds (bounds-of-thing-at-point 'symbol)))
+    (let ((symbols (cl-mapcan
+                    (lambda (table)
+                      (cl-remove-if-not #'stringp (yas--table-all-keys table)))
+                    tables)))
+      `(,(car bounds) ,(cdr bounds) ,symbols
+        :annotation-function ,(lambda (cand) (concat " " "snippet"))
+        :exclusive 'no))))
+
+(add-to-list 'completion-at-point-functions #'yas-completion-at-point)
+
 ;; ----------------------------------------------------------------------
 ;; 4. Code Snippets
 ;; ----------------------------------------------------------------------
 (use-package yasnippet
   :ensure t
   :hook ((csharp-mode . yas-minor-mode)
-         (prog-mode . yas-minor-mode))
-  :config
-  (yas-reload-all)
-  (define-key yas-minor-mode-map [(tab)] nil)
-  (define-key yas-minor-mode-map (kbd "TAB") nil)
-  (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  :bind
-  (:map yas-minor-mode-map ("S-<tab>" . yas-expand)))
+         (prog-mode . yas-minor-mode)))
+  ;; (define-key yas-minor-mode-map [(tab)] nil)
+  ;; (define-key yas-minor-mode-map (kbd "TAB") nil)
+  ;; (define-key yas-minor-mode-map (kbd "<tab>") nil)
+  ;; :bind
+  ;; (:map yas-minor-mode-map ("S-<tab>" . yas-expand)))
+  ;; new:
+  ;; :bind
+  ;; (:map yas-minor-mode-map ("TAB" . yas-expand)))
 
 ;; A collection of default snippets for many languages, including C#
 (use-package yasnippet-snippets
   :ensure t
-  :after yasnippet)
+  :after yasnippet
+  :config
+  (yas-reload-all))
 
 ;; Company + Yasnippet integration  *** NOT NEEDED with Corfu (no bridge required) ***
 ;; (add-hook 'company-mode-hook
@@ -600,7 +630,7 @@
 ;;     (delete-region beg end)
 ;;     (goto-char beg)
 ;;     (insert org-text)))
-(defun md-to-org (beg end)
+(defun /md-to-org (beg end)
   "Convert selected Markdown text to Org format in-place."
   (interactive "r")
   (unless (use-region-p)
@@ -657,10 +687,6 @@
 
 
 
-;; --------------------
-;; highlight current line
-;; --------------------
-(global-hl-line-mode 1)
 
 ;; ;; --------------------
 ;; ;; Consult (better buffer/file/search commands)
@@ -878,28 +904,188 @@
 ;; alternative buffer fast switching
 (global-set-key (kbd "C-x C-a") #'mode-line-other-buffer)
 
-;; denote
-;; Remember that the website version of this manual shows the latest
-;; developments, which may not be available in the package you are
-;; using.  Instead of copying from the web site, refer to the version
-;; of the documentation that comes with your package.  Evaluate:
-;;
-;;     (info "(denote) Sample configuration")
-(use-package denote
-  :ensure t
-  :hook (dired-mode . denote-dired-mode)
-  :bind
-  (("C-c d n" . denote)
-   ("C-c d r" . denote-rename-file)
-   ("C-c d l" . denote-link)
-   ("C-c d b" . denote-backlinks)
-   ("C-c d d" . denote-dired)
-   ("C-c d g" . denote-grep))
-  :config
-  (setq denote-directory (expand-file-name "/mnt/hdd/st/obsi/vault_bank/"))
+;; ;; denote
+;; ;; Remember that the website version of this manual shows the latest
+;; ;; developments, which may not be available in the package you are
+;; ;; using.  Instead of copying from the web site, refer to the version
+;; ;; of the documentation that comes with your package.  Evaluate:
+;; ;;
+;; ;;     (info "(denote) Sample configuration")
+;; (use-package denote
+;;   :ensure t
+;;   :hook (dired-mode . denote-dired-mode)
+;;   :bind
+;;   (("C-c d n" . denote)
+;;    ("C-c d r" . denote-rename-file)
+;;    ("C-c d l" . denote-link)
+;;    ("C-c d b" . denote-backlinks)
+;;    ("C-c d d" . denote-dired)
+;;    ("C-c d g" . denote-grep))
+;;   :config
+;;   (setq denote-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/"))
 
-  ;; Automatically rename Denote buffers when opening them so that
-  ;; instead of their long file name they have, for example, a literal
-  ;; "[D]" followed by the file's title.  Read the docstring of
-  ;; `denote-rename-buffer-format' for how to modify this.
-  (denote-rename-buffer-mode 1))
+;;   ;; Automatically rename Denote buffers when opening them so that
+;;   ;; instead of their long file name they have, for example, a literal
+;;   ;; "[D]" followed by the file's title.  Read the docstring of
+;;   ;; `denote-rename-buffer-format' for how to modify this.
+;;   (denote-rename-buffer-mode 1))
+
+
+;; --------------------
+;; emacsclient server
+;; --------------------
+(condition-case nil
+    (server-start)
+  (error
+   (server-force-delete)
+   (server-start)))
+
+;; golden-ratio
+(unless (package-installed-p 'golden-ratio)
+  (package-refresh-contents)
+  (package-install 'golden-ratio))
+(require 'golden-ratio)
+(golden-ratio-mode 1)
+
+;; CF project layout
+(defun dt/codeforces-open (dir)
+  "Open CF problem layout: Program.cs left, input/output/vterm right."
+  (interactive (list (read-directory-name "CF dir: " "~/cp/")))
+  (let* ((proj-cs  (expand-file-name "Program.cs" dir))
+         (input-txt (expand-file-name "input.txt" dir))
+         (output-txt (expand-file-name "output.txt" dir)))
+    (delete-other-windows)
+    (find-file proj-cs)
+    (split-window-right)
+    (other-window 1)
+    (find-file input-txt)
+    (split-window-below)
+    (other-window 1)
+    (find-file output-txt)
+    (split-window-below)
+    (other-window 1)
+    (vterm)
+    (other-window -3)
+    (balance-windows)))
+
+;; search vault bank (by name) (vault picker)
+(defun dt/vault-picker ()
+  (interactive)
+  (let ((default-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/")))
+    (call-interactively #'consult-find)))
+(global-set-key (kbd "C-c v p") #'dt/vault-picker)
+
+;; search vault bank (by name) (vault new note)
+(defun dt/vault-new ()
+  (interactive)
+  (let ((default-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/")))
+    (call-interactively #'find-file)))
+(global-set-key (kbd "C-c v n") #'dt/vault-new)
+
+;; search vault bank (by content) (vault grep)
+(defun dt/vault-grep ()
+  (interactive)
+  (let ((default-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/")))
+    (call-interactively #'consult-grep)))
+(global-set-key (kbd "C-c v g") #'dt/vault-grep)
+
+;; wiki link style for .md 
+(defun dt/insert-link (file title)
+  (interactive
+   (progn
+     (unless (eq major-mode 'markdown-mode)
+       (user-error "Only usable in markdown buffers"))
+     (let* ((vault-dir (expand-file-name "/mnt/hdd/obsi/vault_bank/"))
+            (files (directory-files-recursively vault-dir "" t))
+            (files (mapcar (lambda (f) (file-relative-name f vault-dir)) files))
+            (file (completing-read "Link to: " files nil t)))
+       (list file
+             (read-string "Link text: "
+                          (file-name-sans-extension (file-name-base file)))))))
+  (insert (format "[[%s|%s]]" file title)))
+(global-set-key (kbd "C-c v l") #'dt/insert-link)
+
+
+;; random note
+(defun dt/vault-random ()
+  (interactive)
+  (let* ((vault-dir (expand-file-name "/mnt/hdd/obsi/vault_bank/"))
+         (files (directory-files-recursively
+                 vault-dir
+                 "\\.\\(md\\|org\\)\\'"
+                 t)))
+    (if files
+        (find-file (nth (random (length files)) files))
+      (message "No .md or .org files in vault"))))
+
+(global-set-key (kbd "C-c v r") #'dt/vault-random)
+
+;; fast file reload
+(global-auto-revert-mode 1)
+
+
+(electric-pair-mode 1)           ;; auto-close brackets {} [] () "" etc.
+(setq-default tab-width 2)       ;; display width
+(setq-default c-basic-offset 2)  ;; C#/C indent
+
+
+; ;; org refactor after md-to-org
+; (defun dt/org-refactor-region (beg end)
+;   "Refactor the selected Org region.
+; - Delete every line starting with \"---\".
+; - Demote every Org heading by one level."
+;   (interactive "r")
+;   (unless (use-region-p)
+;     (user-error "No region selected"))
+;   (save-excursion
+;     (save-restriction
+;       (narrow-to-region beg end)
+;       ;; Delete separator lines.
+;       (goto-char (point-min))
+;       (flush-lines "^---")
+;       ;; Demote every heading by one level.
+;       (goto-char (point-min))
+;       (while (re-search-forward "^\\(\\*+\\) " nil t)
+;         (replace-match (concat (match-string 1) "* ") t t)))))
+
+(defun dt/org-refactor-region (beg end)
+  "Refactor the selected Org region.
+
+- Delete every line starting with \"---\".
+- Demote every Org heading by one level.
+- Strip heading markers from level-4+ headings."
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "No region selected"))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+
+      ;; Delete separator lines.
+      (goto-char (point-min))
+      (flush-lines "^---")
+
+      ;; Demote every heading by one level.
+      (goto-char (point-min))
+      (while (re-search-forward "^\\(\\*+\\) " nil t)
+        (replace-match (concat (match-string 1) "* ") t t)))))
+
+(defun dt/org-strip-headings (beg end)
+  "Strip Org heading markers from level-4+ headings in the selected region.
+
+Examples:
+**** Learn:    -> Learn:
+***** Features -> Features
+****** Notes   -> Notes"
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "No region selected"))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\*\\{4,\\}[ \t]+" nil t)
+        (replace-match "" t t)))))
+(put 'narrow-to-region 'disabled nil)
+
+;; i installed (key-quiz package)

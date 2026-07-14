@@ -180,6 +180,78 @@ crondo() { # rondo with copy
     done
 }
 
+# cf-old() {
+#     local url="$1"
+#
+#     local id
+#     id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
+#
+#     local dir="$HOME/cp/$id"
+#
+#     rm -rf "$dir"
+#     cp -r "$HOME/cp/template" "$dir"
+#
+#     mv "$dir/template.csproj" "$dir/$id.csproj"
+#
+#     touch "$dir/input.txt"
+#     touch "$dir/output.txt"
+#
+#     tmux new-session -d -s codeforces -c "$dir"
+#
+#     tmux rename-window -t codeforces:1 "$id"
+#
+#     tmux send-keys -t codeforces:1 "helix Program.cs" C-m
+#
+#     tmux split-window -h -t codeforces:1
+#
+#     tmux split-window -v -t codeforces:1.2
+#
+#     tmux send-keys -t codeforces:1.2 "nvim input.txt" C-m
+#     tmux send-keys -t codeforces:1.3 "nvim output.txt" C-m
+#
+#     tmux new-window -t codeforces -n scratch -c "$dir"
+#
+#     tmux attach -t codeforces
+# }
+
+# codeforces
+cf() {
+    local url="$1"
+    local id
+    id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
+    local dir="$HOME/cp/$codeforces-id"
+
+    rm -rf "$dir"
+    cp -r "$HOME/cp/template" "$dir"
+    mv "$dir/template.csproj" "$dir/codeforces-$id.csproj"
+    touch "$dir/input.txt" "$dir/output.txt"
+
+    if timeout 2 emacsclient -e t &>/dev/null; then
+        emacsclient -c -n --eval "(dt/codeforces-open \"$dir\")"
+    else
+        emacs --eval "(dt/codeforces-open \"$dir\")" &
+    fi
+}
+
+
+# leetcode
+lt() {
+    local id="$1"
+    # local id
+    # id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
+    local dir="$HOME/cp/leetcode-$id"
+
+    rm -rf "$dir"
+    cp -r "$HOME/cp/template" "$dir"
+    mv "$dir/template.csproj" "$dir/leetcode-$id.csproj"
+    touch "$dir/input.txt" "$dir/output.txt"
+
+    if timeout 2 emacsclient -e t &>/dev/null; then
+        emacsclient -c -n --eval "(dt/codeforces-open \"$dir\")"
+    else
+        emacs --eval "(dt/codeforces-open \"$dir\")" &
+    fi
+}
 
 # helpers
 path() { echo -e "${PATH//:/\\n}"; }

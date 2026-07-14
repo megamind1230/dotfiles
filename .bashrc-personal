@@ -1,29 +1,5 @@
-export MANPAGER='nvim +Man!'
-export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
 # bash prompt theming
 PS1='\e[3;33m(\@)\e[m\u:\h\e[1;36m[\w]\e[m$ '
-
-export EDITOR='nvim'
-export VISUAL='nvim'
-export BROWSER='brave'
-
-export TERMINAL=/usr/bin/kitty
-
-
-# for lunar vim 
-export PATH=/home/dt/.local/bin:$PATH
-# for doom
-# export PATH=/home/dt/.config/emacs/bin:$PATH
-export PATH="$HOME/.config/emacs/bin:$PATH"
-export PATH="$HOME/.emacs.d/bin:$PATH"
-# add scripts folder to my path
-export PATH="/home/dt/scripts/:$PATH"
-# add dotnet tools
-export PATH="$HOME/.dotnet/tools:$PATH"
-
-
-
-PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 
 # vi keybindings in bash
 # set -o vi
@@ -39,6 +15,3 @@ fi
 ## things to autostart with bash
 # cal; date
 
-
-export SCREENREC_AUDIO_SINK=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor
-export SCREENREC_AUDIO_SOURCE=alsa_input.pci-0000_00_1b.0.analog-stereo

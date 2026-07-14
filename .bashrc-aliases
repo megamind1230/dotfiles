@@ -6,7 +6,7 @@ my_active_nvim="nvim"
 #terminal="alacritty"
 #TERMINAL="alacritty"
 hdd="/mnt/hdd"
-obsidot="/mnt/hdd/st/obsi/vault_bank/my-dotfiles"
+obsidot="/mnt/hdd/obsi/vault_bank/my-dotfiles"
 fastnote="$obsidot/fast-note.md"
 
 
