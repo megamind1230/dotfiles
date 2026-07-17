@@ -26,6 +26,7 @@ exec_always --no-startup-id dunst
 exec_always --no-startup-id sh -c 'xwallpaper --zoom "$(find /mnt/hdd/Favorites -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | shuf -n 1)"'
 exec_always --no-startup-id clipmenud
 exec_always --no-startup-id autotiling
+# exec_always --no-startup-id picom --backend glx
 
 
 # touchpad (natural scroll + slower scrolling)
@@ -107,6 +108,19 @@ set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10"
 
+# === app → workspace assignments ===
+assign [class="Steam"] → $ws1
+assign [class="Brave"] → $ws2
+assign [class="firefox"] → $ws2
+# assign [class="Thunar"] → $ws3
+assign [class="okular"] → $ws4
+assign [class="Gimp"] → $ws5
+assign [class="kdenlive"] → $ws5
+assign [class="obsidian"] → $ws9
+assign [class="Zennotes"] → $ws9
+assign [class="discord"] → $ws10
+assign [class="TelegramDesktop"] → $ws10
+
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
 bindsym $mod+2 workspace number $ws2
@@ -131,17 +145,18 @@ bindsym $mod+Shift+8 move container to workspace number $ws8, workspace number $
 bindsym $mod+Shift+9 move container to workspace number $ws9, workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10, workspace number $ws10
 
-# Extract scratchpad window to workspace
-bindsym $mod+Ctrl+1 scratchpad show, move container to workspace number $ws1, floating disable
-bindsym $mod+Ctrl+2 scratchpad show, move container to workspace number $ws2, floating disable
-bindsym $mod+Ctrl+3 scratchpad show, move container to workspace number $ws3, floating disable
-bindsym $mod+Ctrl+4 scratchpad show, move container to workspace number $ws4, floating disable
-bindsym $mod+Ctrl+5 scratchpad show, move container to workspace number $ws5, floating disable
-bindsym $mod+Ctrl+6 scratchpad show, move container to workspace number $ws6, floating disable
-bindsym $mod+Ctrl+7 scratchpad show, move container to workspace number $ws7, floating disable
-bindsym $mod+Ctrl+8 scratchpad show, move container to workspace number $ws8, floating disable
-bindsym $mod+Ctrl+9 scratchpad show, move container to workspace number $ws9, floating disable
-bindsym $mod+Ctrl+0 scratchpad show, move container to workspace number $ws10, floating disable
+# Extract scratchpad window to workspace (show scratchpad first with $mod+a, then extract)
+# cluncky but works
+bindsym $mod+Ctrl+1 move container to workspace number $ws1, floating disable
+bindsym $mod+Ctrl+2 move container to workspace number $ws2, floating disable
+bindsym $mod+Ctrl+3 move container to workspace number $ws3, floating disable
+bindsym $mod+Ctrl+4 move container to workspace number $ws4, floating disable
+bindsym $mod+Ctrl+5 move container to workspace number $ws5, floating disable
+bindsym $mod+Ctrl+6 move container to workspace number $ws6, floating disable
+bindsym $mod+Ctrl+7 move container to workspace number $ws7, floating disable
+bindsym $mod+Ctrl+8 move container to workspace number $ws8, floating disable
+bindsym $mod+Ctrl+9 move container to workspace number $ws9, floating disable
+bindsym $mod+Ctrl+0 move container to workspace number $ws10, floating disable
 
 # # resize window (you can also use the mouse for that)
 # mode "resize" {

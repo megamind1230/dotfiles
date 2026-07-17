@@ -271,7 +271,7 @@
 ;; --------------------
 (setq org-capture-templates
       `(("t" "Temp-note" entry
-         (file ,(expand-file-name "inbox.org" org-directory))
+         (file ,(expand-file-name "0-inbox.org" org-directory))
          "* TODO %?\n  %U\n")))
 ;; --------------------
 ;; GTD Agenda
