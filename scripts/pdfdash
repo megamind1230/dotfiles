@@ -25,7 +25,8 @@ FZF_PDF_OPTS=(
 
 #baka: "$@" lets callers pass extra fzf flags (e.g. -m for multi-select)
 pick_pdf() {
-    find . -type f -iname "*.pdf" | fzf "${FZF_PDF_OPTS[@]}" "$@"
+    # find . -type f -iname "*.pdf" | fzf "${FZF_PDF_OPTS[@]}" "$@"
+    fd -HI -t f -e pdf | fzf "${FZF_PDF_OPTS[@]}" "$@"
 }
 
 extract_images() {

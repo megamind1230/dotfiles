@@ -1,6 +1,651 @@
+* Scripts Library
+
+A collection of bash scripts for daily use on Linux (Wayland + X11). All scripts auto-detect the display server and use the appropriate clipboard tool (=wl-copy= on Wayland, =xclip= on X11).
+
+** Quick Reference
+
+| Script              | Category   | What it does                                         | Key Deps                          |
+|---------------------+------------+------------------------------------------------------+-----------------------------------|
+| =pdfdash=           | PDF        | Interactive PDF dashboard (extract, merge, compress) | pdftk, fzf, ghostscript, poppler |
+| =snapshot-rofi=     | Notes      | Org-mode inbox capture via rofi with image support   | rofi, nvim, cliphist/wl-paste     |
+| =calc=              | Utility    | Rofi calculator, copies result to clipboard          | rofi, bc, wl-copy/xclip           |
+| =emote=             | Utility    | Emoji + kaomoji picker via rofi                      | rofi, wl-copy/xclip               |
+| =cwp=               | Desktop    | Wallpaper picker with terminal preview               | fzf, chafa, hyprpaper/xwallpaper  |
+| =file-organizer=    | Files      | Interactive file sorter with categories and undo     | bash 4+, coreutils                |
+| =new-word=          | Vocab      | Vocabulary builder, saves word + definition          | rofi, notify-send                 |
+| =timer=             | Timer      | Countdown timer with sound notification + task log   | termdown, paplay                  |
+| =toglang=           | Input      | Toggle keyboard layout (US / Arabic)                 | setxkbmap                         |
+| =region-to-gif=     | Recording  | Record a screen region to GIF                        | byzanz/xrectsel or wlgif          |
+| =record=            | Recording  | Screen + mic recorder -> merged mp4                  | ffmpeg, the scripts below         |
+| =screenrecord=      | Recording  | Screen-only recording                                | wl-screenrec/wf-recorder/ffmpeg   |
+| =screenrecord-audio=| Recording  | Screen + desktop audio recording                     | wl-screenrec/wf-recorder/ffmpeg   |
+| =mic=               | Recording  | Mic capture with noise reduction + EQ + compression  | ffmpeg, pactl                     |
+| =p_lib_session.sh=  | Library    | Shared helpers (compositor, audio, clipboard)        | --                                |
+| =tst=               | Debug      | Prints display server type (wayland/x11)             | --                                |
+
+** Recording Architecture
+
+The recording scripts form a layered system:
+
+: +-----------------------------------------------+
+: |  record            -- top-level launcher       |
+: |    |-- screenrecord      -- screen only        |
+: |    |-- screenrecord-audio -- screen + desktop  |
+: |    +-- mic               -- mic audio          |
+: |    p_lib_session.sh     -- shared library      |
+: +-----------------------------------------------+
+
+- =record= is the entry point. It asks for mode (screen-only or screen+desktop), launches the screen recorder and =mic= in parallel, then merges the outputs into a single =_final.mp4=.
+- =screenrecord= and =screenrecord-audio= are standalone -- you can run them directly if you don't need mic.
+- =mic= is standalone too -- run it for voice recordings without video.
+- =p_lib_session.sh= is sourced by all recording scripts. It provides compositor detection, audio device resolution, monitor dimensions, and clipboard helpers.
+
+
+* snapshot-rofi
+
+Quick-capture rofi frontend for org-mode notes. Type a new note -> appended to ~/org/inbox.org with Emacs-format timestamp and optional clipboard image as org link. Selecting an existing entry opens it in nvim at that line.
+
+** What it does
+
+1. Opens rofi with a reverse-sorted list of existing notes from ~/org/inbox.org
+2. If you select an existing entry -> opens it in nvim at that line
+3. If you type something new:
+   - Checks clipboard for an image (cliphist -> wl-paste -> xclip)
+   - If image found, saves it to ~/org/imgs/
+   - Appends a new org heading with timestamp and optional image link
+
+** Usage
+
+: snapshot-rofi
+
+No arguments. The rofi prompt appears centered on screen.
+
+** Dependencies
+
+- rofi -- UI
+- nvim -- opens existing notes for editing
+- Clipboard image support (one of):
+  - cliphist + wl-paste (Wayland, recommended)
+  - wl-paste (Wayland fallback)
+  - xclip (X11)
+
+** Output format
+
+Notes are appended to ~/org/inbox.org in this format:
+
+: * your note text
+: [2026-07-22 Wed 14:30]
+: [[file:~/org/imgs/22-07-2026@02-30-15-PM.png]]
+
+** Notes
+
+- Images are saved with a timestamp filename to avoid collisions
+- The tac reversal shows newest notes first in rofi
+- Falls back gracefully if no image is in clipboard (just skips the image link)
+
+
+* calc
+
+Opens a rofi prompt for a math expression, evaluates it with bc -l, copies result to clipboard, shows notify-send notification.
+
+** Usage
+
+: calc
+
+A rofi dialog appears. Type any math expression:
+
+: 2+2         -> 4
+: 3.14*2      -> 6.28
+: 1024/3      -> 341.3333333333333333333333333
+: sqrt(144)   -> 12
+: (3+4)*2     -> 14
+
+The result is copied to your clipboard and a notification shows "expr = result".
+
+** Dependencies
+
+- rofi -- input prompt
+- bc -l -- math evaluator (-l flag enables sqrt, sin, log, etc.)
+- wl-copy / xclip -- clipboard
+- notify-send -- desktop notification
+
+** Notes
+
+- Empty input exits silently (exit 0)
+- Invalid expression exits with exit 1 silently
+- bc -l supports: sqrt, sine, cosine, arctangent, log, exp
+
+
+* emote
+
+Launches a rofi dmenu with an embedded emoji + kaomoji list, copies the selected item to clipboard.
+
+** What it does
+
+Presents ~3380 entries (emojis, kaomoji, text faces, symbols) in rofi. Type to fuzzy-search, select to copy.
+
+** Usage
+
+: emote
+
+Rofi opens with a searchable list. Start typing to filter:
+
+| You type  | Matches                                             |
+|-----------+-----------------------------------------------------|
+| smile     | grinning face, smiling face, smiley, etc.            |
+| heart     | red heart, blue heart, sparkling heart, etc.         |
+| (         | (o_o) (O_O) (=^_^=) and other text faces            |
+| cool      | sunglasses face and all its variants                 |
+| food      | pizza, burger, sushi, ramen, taco, donut, etc.       |
+
+Select one -> it's copied to clipboard, ready to paste.
+
+** Content categories
+
+- *Emojis:* Standard Unicode emojis with keyword tags (face, smile, animal, food, object, symbol, flag, etc.)
+- *Kaomoji faces:* Happy, sad, angry, surprised, cat, neutral
+- *Kaomoji modifiers:* With wave, flex, peace, hug, love, music, flower
+- *Sunglasses combos:* cool face with every emotion and gesture
+- *Symbols:* Arrows, zodiac, religious, math operators, punctuation
+- *Objects:* Phones, computers, tools, food, drinks (searchable by keyword)
+
+** Dependencies
+
+- rofi -- UI
+- wl-copy / xclip -- clipboard
+
+** Notes
+
+- Data is embedded in the script itself (after ### DATA ###) -- no external file needed
+- Format: emoji|||keyword1 keyword2 (separator is |||)
+- The cut -d'|' -f1 extracts just the emoji/kaomoji for clipboard
+- Needs noto-fonts-cjk for Japanese/Chinese/Korean characters in kaomoji
+- Add new entries by appending to the DATA section in the script
+
+
+* cwp
+
+Interactive wallpaper selector. Uses fzf with chafa preview to pick an image from /mnt/hdd/Favorites, sets it via hyprctl hyprpaper (Wayland) or xwallpaper (X11).
+
+** Usage
+
+: cwp
+
+An fzf window opens showing image files from your wallpaper directory. Navigate with arrow keys -- the right pane shows a live terminal preview of each image via chafa. Press Enter to set it as wallpaper.
+
+** Features
+
+- Live preview in terminal (40x20 character grid via chafa)
+- Supports: JPG, JPEG, PNG, WebP
+- Automatic display server detection (Hyprland / X11)
+
+** Dependencies
+
+- fzf -- fuzzy finder
+- chafa -- terminal image previewer
+- hyprctl + hyprpaper (Wayland) or xwallpaper (X11)
+
+** Configuration
+
+The wallpaper directory is hardcoded to /mnt/hdd/Favorites. Change the WALLDIR variable at the top of the script to use a different path.
+
+** Notes
+
+- On Wayland (Hyprland): unloads current wallpaper, preloads the new one, then applies
+- On X11: uses xwallpaper --focus which sets the wallpaper for the focused monitor
+
+
+* file-organizer
+
+File sorting tool with category-based organization, pattern matching, interactive menus, dry-run mode, and undo.
+
+** Usage
+
+Interactive mode (default -- just point it at a directory):
+
+: file-organizer --source ~/Downloads
+
+The menu presents:
+
+: +--------------------------------------+
+: |   File Organizer  |  42 files left   |
+: +--------------------------------------+
+: |  1. Container   2. Patterns          |
+: |  3. General     l. List              |
+: |  r. Reverse     q. Quit              |
+: +--------------------------------------+
+
+| Mode         | What it does                                                       |
+|--------------+--------------------------------------------------------------------|
+| 1. Container | Select files by index (e.g. 2,3 or 1-5), move into a named folder  |
+| 2. Patterns  | Enter comma-separated keywords or regex, matches move to folders    |
+| 3. General   | Auto-sort remaining files by extension into category folders        |
+| l. List      | Show remaining files                                                |
+| r. Reverse   | Move all files from subfolders back to root (undo)                 |
+| q. Quit      | Exit                                                               |
+
+** One-shot modes
+
+Skip the interactive menu:
+
+: # Auto-sort by category (no prompts)
+: file-organizer --source ~/Downloads --one-shot
+:
+: # Pattern match + dry run
+: file-organizer --source ~/Downloads --patterns "report,photo" --dry-run
+:
+: # Regex patterns
+: file-organizer --source ~/Downloads --patterns "^IMG_,\d{4}" --regex
+:
+: # Move everything into one folder
+: file-organizer --source ~/Downloads --container "my-files"
+:
+: # Undo: flatten all subfolders back
+: file-organizer --source ~/Downloads --reverse
+
+** Category mapping
+
+| Category     | Extensions                                        |
+|--------------+---------------------------------------------------|
+| imgs         | jpg jpeg png gif bmp webp svg ico                  |
+| docs         | pdf doc docx xls xlsx ppt pptx txt rtf csv md      |
+| aud          | mp3 wav flac aac ogg wma m4a                       |
+| vid          | mp4 mkv avi mov wmv flv webm                       |
+| archives     | zip rar 7z tar gz bz2                              |
+| installers   | exe msi deb rpm appimage                           |
+| others       | everything else                                    |
+
+** Options
+
+| Flag              | Description                              |
+|-------------------+------------------------------------------|
+| --source <dir>    | Directory to organize (required)         |
+| --patterns        | Comma-separated keywords/regex           |
+| --container       | Move all files into a named folder       |
+| --dry-run         | Preview only, no files are moved         |
+| --reverse         | Undo: move files from subfolders back    |
+| --one-shot        | Non-interactive mode                     |
+| --regex           | Interpret patterns as regex              |
+| --interactive     | Force interactive menu                   |
+
+** Dependencies
+
+- bash 4+ (for associative arrays, nameref)
+- coreutils (mkdir, mv, stat, date)
+- Logs written to logs/app-YYYYMMDD.log (relative to where you run it)
+
+** Notes
+
+- Uses set -euo pipefail -- any error exits immediately
+- Handles filename collisions by appending file(1), file(2), etc.
+- The reverse mode flattens all subfolders back to the source root
+
+
+* new-word
+
+Prompts for a word and definition via two rofi dialogs, appends the pair to /mnt/hdd/words.txt, shows notification.
+
+** Usage
+
+: new-word
+
+Two rofi prompts appear in sequence:
+
+1. "Add word: " -> type the word
+2. "Add meaning: " -> type the definition
+
+Both non-empty -> saved to /mnt/hdd/words.txt in format:
+
+: english word | definition or translation
+
+Then a notification confirms: 'word' added to dictionary
+
+** Dependencies
+
+- rofi -- input prompts
+- notify-send -- confirmation notification
+
+** Notes
+
+- Empty input in either prompt cancels silently
+- File is append-only (no dedup)
+- Format is simple: word | definition per line
+
+
+* timer
+
+Reads a duration and task name from stdin, runs termdown as countdown, plays a sound on completion, logs to a task file.
+
+** Usage
+
+: timer
+
+Prompts:
+
+: Enter duration (e.g., 5min, 1h): 25min
+: Enter task name: focus session
+
+The terminal shows a live countdown (via termdown). When it hits zero:
+
+1. Plays ~/timer-sound.mp3 via paplay
+2. Appends a log entry to /mnt/hdd/tasks-log.txt
+
+** Log format
+
+: focus session  |  Mon22-7-2026 @ 02:30PM  |  @ 02:55PM  |  25min
+
+** Duration format
+
+termdown accepts: 30s, 5min, 1h30m, 2h, etc.
+
+** Dependencies
+
+- termdown (pip install termdown) -- terminal countdown timer
+- paplay (PulseAudio) -- plays the notification sound
+
+
+* toglang
+
+Toggles keyboard layout between us and ara using setxkbmap.
+
+** Usage
+
+: toglang
+
+Switches from US to Arabic, or Arabic to US. No output on success.
+
+Check current layout first:
+
+: setxkbmap -query | grep layout
+
+** Dependencies
+
+- setxkbmap
+
+** Notes
+
+- Only supports two layouts: us and ara
+- No visual feedback -- runs silently
+- Works on X11 only. On Wayland, use your compositor's input config instead (e.g. hyprland: input > kb_layout)
+
+
+* region-to-gif
+
+Records a user-selected screen region and saves it as a GIF to ~/Pictures/out.gif. Auto-detects Wayland vs X11.
+
+** Usage
+
+: region-to-gif
+
+No arguments. A region selector appears (slurp on Wayland, xrectsel on X11). Select an area, record, press Ctrl+C to stop.
+
+** Display server detection
+
+| Session    | Recorder used                  | Region selector |
+|------------+--------------------------------+-----------------|
+| Wayland    | wlgif (slurp + wf-recorder)    | slurp           |
+| X11 / default | byzanz-record + xrectsel    | xrectsel        |
+
+Falls back to X11 if =XDG_SESSION_TYPE= is unset.
+
+** Output
+
+- Path: ~/Pictures/out.gif
+- Format: GIF
+- Behavior: recording starts on region select, Ctrl+C stops and finalizes
+
+** Dependencies
+
+- Wayland: wlgif (cargo install wlgif)
+- X11: byzanz-record, xrectsel
+
+** Notes
+
+- Same script works on both display servers with zero config
+- wlgif internally uses slurp (region) + wf-recorder (capture) + ffmpeg (GIF encoding)
+- byzanz-record is X11-only and captures directly to GIF
+
+
+* record
+
+Top-level recording launcher. Asks for mode (screen-only or screen+desktop audio), runs screen recorder + mic in parallel, then merges into a single mp4.
+
+** Usage
+
+: record
+
+A menu appears:
+
+: +---------------------------------+
+: |         record launcher         |
+: +---------------------------------+
+: |  1)  screen only                |
+: |  2)  screen + desktop audio     |
+: +---------------------------------+
+
+Choose 1 or 2. Then:
+
+1. Screen recording starts (background)
+2. Mic recording starts (background)
+3. Press Ctrl+C to stop both
+4. Files are merged into a single _final.mp4
+
+** Output files
+
+All saved to ~/Videos/Screencast/ (or $SCREENCAST_DIR):
+
+| File              | Content                                    |
+|-------------------+--------------------------------------------|
+| TIMESTAMP_video.mp4   | Screen recording (temp, deleted after merge) |
+| TIMESTAMP_mic.m4a     | Processed mic audio (temp, deleted after)   |
+| TIMESTAMP_final.mp4   | Merged output (kept)                       |
+
+** How merging works
+
+- *Mode 1 (screen only):* Video has no audio -> mic track is muxed in directly (=ffmpeg -map=)
+- *Mode 2 (screen + desktop):* Video already has desktop audio -> mic is mixed on top via amerge + pan (equal weight)
+
+** Dependencies
+
+- ffmpeg -- merging
+- The scripts below (screenrecord, screenrecord-audio, mic) -- must be in the same directory
+- p_lib_session.sh -- shared library (same directory)
+
+** Notes
+
+- Uses wrapper scripts in /tmp to override output paths so sub-scripts write to the expected temp filenames
+- Ctrl+C is forwarded to both child processes via trap
+- Temp files are cleaned up on exit
+
+
+* screenrecord
+
+Screen-only recording. Auto-detects compositor and uses the best available recorder.
+
+** Usage
+
+: screenrecord
+
+Starts recording immediately. Press Ctrl+C to stop. Output saved to ~/Videos/Screencast/TIMESTAMP.mp4.
+
+** Recorder selection
+
+| Compositor | Recorder used        | Notes                              |
+|------------+----------------------+------------------------------------|
+| Hyprland   | wl-screenrec         | Best performance on Hyprland       |
+| Sway       | wf-recorder          | Wayland fallback                   |
+| i3 / X11   | ffmpeg -f x11grab    | Direct X11 capture, 60fps, crf=0  |
+
+** Dependencies
+
+- One of: wl-screenrec, wf-recorder, ffmpeg (X11)
+- p_lib_session.sh -- for compositor detection and directory resolution
+
+** Notes
+
+- CRF=0 + preset=ultrafast = lossless, minimal CPU overhead
+- No audio in this mode. Use screenrecord-audio for desktop audio, or record for mic+screen.
+
+
+* screenrecord-audio
+
+Screen + desktop audio recording. Captures what you hear through speakers.
+
+** Usage
+
+: screenrecord-audio
+
+Starts recording immediately. Press Ctrl+C to stop. Output saved to ~/Videos/Screencast/TIMESTAMP.mp4.
+
+** Recorder selection
+
+| Compositor | Recorder used                              |
+|------------+---------------------------------------------|
+| Hyprland   | wl-screenrec --audio --audio-device SINK    |
+| Sway       | wf-recorder -a @DEFAULT_SINK@               |
+| i3 / X11   | ffmpeg -f x11grab + -f pulse -i SINK        |
+
+The audio sink is auto-detected as the monitor of your default PulseAudio/PipeWire sink.
+
+** Dependencies
+
+- One of: wl-screenrec, wf-recorder, ffmpeg (X11)
+- PulseAudio or PipeWire-pulse (for audio monitoring)
+- p_lib_session.sh
+
+** Notes
+
+- Desktop audio only -- does not capture mic. Use record for mic+screen.
+- CRF=0 + preset=ultrafast = lossless video, 192k AAC audio
+
+
+* mic
+
+Standalone microphone recorder with a full audio processing chain: noise reduction, EQ, compression, and limiting. Outputs m4a.
+
+** Usage
+
+: mic
+
+Starts recording immediately. Press Ctrl+C to stop. Output saved to ~/Videos/Screencast/TIMESTAMP.m4a.
+
+** Audio processing chain
+
+The signal goes through 9 stages:
+
+| Stage | Filter            | What it does                                     |
+|-------+-------------------+--------------------------------------------------|
+| 1     | pan=stereo        | Mono mic -> stereo (maps ch0 to both L and R)   |
+| 2     | highpass+lowpass  | Trim below 100Hz (rumble) and above 16kHz (hiss) |
+| 3     | afftdn            | Adaptive FFT noise reduction (nr=12, nf=-60)     |
+| 4     | adeclick          | Removes electrical pops and mouth clicks         |
+| 5     | deesser           | Tames harsh sibilance (S/T/SH sounds)            |
+| 6     | firequalizer      | Voice-optimized EQ curve                         |
+| 7     | compand           | Downward expansion + soft-knee compression       |
+| 8     | volume            | +2dB gentle gain boost                           |
+| 9     | alimiter          | True-peak limiter at -2dBFS ceiling              |
+
+** Dependencies
+
+- ffmpeg -- recording and all audio processing
+- pactl (PulseAudio or PipeWire-pulse) -- audio source detection
+- p_lib_session.sh -- for get_audio_source() and get_recordings_dir()
+
+** Output
+
+- Format: AAC (m4a container)
+- Bitrate: 128kbps (transparent for voice)
+- Channels: stereo
+- Coder: twoloop (higher quality than default fast)
+
+** Configuration
+
+Override defaults via environment variables:
+
+| Variable                | Default                        | Description                |
+|-------------------------+--------------------------------+----------------------------|
+| SCREENCAST_DIR          | ~/Videos/Screencast            | Output directory           |
+| SCREENREC_AUDIO_SOURCE  | auto-detected via pactl        | Mic device to record from  |
+
+
+* p_lib_session.sh
+
+Shared library sourced by all recording scripts. Provides display server detection, compositor detection, audio device resolution, monitor/window dimensions, and clipboard helpers.
+
+** Usage
+
+Source it at the top of your script:
+
+: script_dir="$(cd "$(dirname "$0")" && pwd)"
+: . "$script_dir/p_lib_session.sh"
+
+** Functions
+
+| Function                | Returns                                              |
+|-------------------------+------------------------------------------------------|
+| detect_display_server   | wayland, x11, or unknown                             |
+| detect_compositor       | hyprland, sway, i3, wayland, x11, or unknown         |
+| get_monitor_dimensions  | "WIDTH HEIGHT" (e.g. "1920 1080")                   |
+| get_window_dimensions   | "WIDTH HEIGHT" of the focused window                 |
+| get_recordings_dir      | ~/Videos/Screencast (or $SCREENCAST_DIR)             |
+| get_audio_sink_monitor  | Default audio sink monitor (for desktop audio)       |
+| get_audio_source        | Default audio source (for mic recording)             |
+| copy_to_clipboard       | Copies string to clipboard (wl-copy or xclip/xsel)  |
+
+** Environment variables
+
+| Variable                | Affects                  | Default                    |
+|-------------------------|--------------------------+----------------------------|
+| SCREENCAST_DIR          | get_recordings_dir       | ~/Videos/Screencast        |
+| SCREENREC_AUDIO_SOURCE  | get_audio_source         | pactl get-default-source   |
+| SCREENREC_AUDIO_SINK    | get_audio_sink_monitor   | pactl get-default-sink.monitor |
+
+** Notes
+
+- Detects Hyprland via hyprctl, Sway via swaymsg, i3 via i3-msg
+- Falls back gracefully: unknown compositor -> generic tool -> "1920 1080" default
+- Uses /bin/sh (not bash) for maximum compatibility
+
+
+* tst
+
+Display server detection script. Prints which display server you are running.
+
+** Usage
+
+: tst
+
+Output:
+
+: hi wayland
+
+or:
+
+: hi xorg
+
+or:
+
+: Unknown display server
+
+** Detection method
+
+1. Checks $XDG_SESSION_TYPE first
+2. Falls back to checking $WAYLAND_DISPLAY and $DISPLAY
+3. Handles the case where neither is set
+
+** Dependencies
+
+- None
+
+** Notes
+
+- Useful for debugging which session type is active
+- The fallback method (checking env vars) covers cases where XDG_SESSION_TYPE is not set (e.g. in some SSH sessions or nested compositors)
+
+
 * pdfdash
 
-Interactive PDF dashboard for the terminal. Pick a PDF with preview, then run operations on it — all through =fzf= menus.
+Interactive PDF dashboard for the terminal. Pick a PDF with preview, then run operations on it -- all through fzf menus.
 
 ** Features
 
@@ -9,25 +654,23 @@ Interactive PDF dashboard for the terminal. Pick a PDF with preview, then run op
 | Extract Images    | Export pages as PNG, JPEG, or TIFF (all or range)   | pdftoppm    |
 | Extract Pages     | Pull specific pages into a new PDF                  | pdftk       |
 | Merge PDFs        | Combine multiple PDFs into one (multi-select)       | pdftk       |
-| Compress PDF      | Reduce file size (4 presets from screen→prepress)   | ghostscript |
+| Compress PDF      | Reduce file size (4 presets from screen->prepress)  | ghostscript |
 | Encrypt PDF       | Password-protect with owner + optional user pw      | pdftk       |
 | Decrypt PDF       | Strip password protection                           | pdftk       |
-| Rotate Pages      | Rotate all pages 90° CW, 90° CCW, or 180°          | pdftk       |
+| Rotate Pages      | Rotate all pages 90 CW, 90 CCW, or 180             | pdftk       |
 
 ** Dependencies
 
-- =pdftk= — page extraction, merge, encryption, rotation
-- =poppler-utils= (provides =pdftoppm=, =pdftotext=) — image export, text preview
-- =fzf= — interactive fuzzy-finder menu + preview pane
-- =ghostscript= (provides =gs=) — PDF compression
+- pdftk -- page extraction, merge, encryption, rotation
+- poppler-utils (provides pdftoppm, pdftotext) -- image export, text preview
+- fzf -- interactive fuzzy-finder menu + preview pane
+- ghostscript (provides gs) -- PDF compression
 
 ** Usage
 
-Just run:
+: pdfdash
 
-: ./pdfdash
-
-Or if it's in =$PATH=:
+Or if it's in $PATH:
 
 : pdfdash
 
@@ -41,18 +684,18 @@ Each feature follows the same flow:
 
 ** Layout
 
-: ┌────────────────────────────┐
-: │ PDF Dashboard              │
-: ├────────────────────────────┤
-: │ Extract Images             │
-: │ Extract PDF Pages          │
-: │ Merge PDFs                 │
-: │ Compress PDF               │
-: │ Encrypt PDF                │
-: │ Decrypt PDF                │
-: │ Rotate Pages               │
-: │ Quit                       │
-: └────────────────────────────┘
+: +----------------------------+
+: | PDF Dashboard              |
+: +----------------------------+
+: | Extract Images             |
+: | Extract PDF Pages          |
+: | Merge PDFs                 |
+: | Compress PDF               |
+: | Encrypt PDF                |
+: | Decrypt PDF                |
+: | Rotate Pages               |
+: | Quit                       |
+: +----------------------------+
 
 When picking a PDF, the right 60% of the terminal shows:
 
@@ -64,97 +707,43 @@ When picking a PDF, the right 60% of the terminal shows:
 
 ** Tech Stack
 
-- *Language:* Bash (no external scripting language)
-- *UI:* fzf (fuzzy finder with preview window)
-- *PDF engine:* pdftk + poppler-utils + ghostscript
-- *Entry point:* =dashboard()= — infinite loop, fzf-based case switch
-- *Temp files:* =mktemp= in =/tmp/pdfdash/=
+- Language: Bash (no external scripting language)
+- UI: fzf (fuzzy finder with preview window)
+- PDF engine: pdftk + poppler-utils + ghostscript
+- Entry point: dashboard() -- infinite loop, fzf-based case switch
+- Temp files: mktemp in /tmp/pdfdash/
 
 ** Structure
 
-: ┌──────────────────────────────────────────┐
-: │ pick_pdf()    — fzf wrapper with preview  │
-: │ extract_images() — pdftoppm + format pick │
-: │ extract_pdf()     — pdftk cat             │
-: │ merge_pdfs()      — pdftk cat multi       │
-: │ compress_pdf()    — gs pdfwrite           │
-: │ encrypt_pdf()     — pdftk owner_pw        │
-: │ decrypt_pdf()     — pdftk input_pw        │
-: │ rotate_pdf()      — pdftk cat 1-end{dir}  │
-: │ dashboard()       — main loop + menu      │
-: └──────────────────────────────────────────┘
+: +------------------------------------------+
+: | pick_pdf()       -- fzf wrapper w/preview |
+: | extract_images() -- pdftoppm + format    |
+: | extract_pdf()    -- pdftk cat             |
+: | merge_pdfs()     -- pdftk cat multi       |
+: | compress_pdf()   -- gs pdfwrite           |
+: | encrypt_pdf()    -- pdftk owner_pw        |
+: | decrypt_pdf()    -- pdftk input_pw        |
+: | rotate_pdf()     -- pdftk cat 1-end{dir}  |
+: | dashboard()      -- main loop + menu      |
+: +------------------------------------------+
 
-All functions get input via =pick_pdf=, so the fzf preview applies everywhere.
+All functions get input via pick_pdf, so the fzf preview applies everywhere.
 
 ** File Locations
 
-- Script: =~/.local/bin/pdfdash= (or wherever in =$PATH=)
-- Temp files: =/tmp/pdfdash/= (cleaned on reboot)
-- Docs: =plan-todos.org=, =bugs.org=, =README.org= (alongside the script)
+- Script: ~/.local/bin/pdfdash (or wherever in $PATH)
+- Temp files: /tmp/pdfdash/ (cleaned on reboot)
+- Docs: plan-todos.org, bugs.org, README.org (alongside the script)
 
 ** Exit Codes
 
 | Code | Meaning              |
 |------+----------------------|
 | 0    | Normal exit (Quit)   |
-| 1    | Bash error (=set -e=) |
+| 1    | Bash error (set -e)  |
 
 ** Notes
 
-- =set -euo pipefail= is enabled — any command failure exits immediately
-- The script runs in the current directory and finds PDFs recursively (=find . -type f -iname "*.pdf"=)
+- set -euo pipefail is enabled -- any command failure exits immediately
+- The script runs in the current directory and finds PDFs recursively (fd -HI -t f -e pdf)
 - Encrypted PDFs use 128-bit AES (pdftk default)
-
-* snapshot-rofi
-
-Quick-capture rofi frontend for org-mode notes. Type a new note → appended to =~/org/inbox.org= with Emacs-format timestamp and optional clipboard image as org link. Selecting an existing entry opens it in nvim at that line.
-
-Deps: rofi, nvim, cliphist/wl-paste/xclip
-
-* calc
-
-Opens a rofi prompt for a math expression, evaluates it with =bc -l=, copies result to clipboard (=wl-copy=/=xclip=), shows =notify-send= notification.
-
-Deps: rofi, bc, wl-copy/xclip, notify-send
-
-* cwp
-
-Interactive wallpaper selector. Uses =fzf= with =chafa= preview to pick an image from =/mnt/hdd/Favorites=, sets it via =hyprctl hyprpaper= (Wayland) or =xwallpaper= (X11).
-
-Deps: fzf, chafa, hyprctl+hyprpaper/xwallpaper
-
-* emote
-
-Launches a rofi dmenu with an embedded emoji list, copies the selected emoji to clipboard (=wl-copy=/=xclip=).
-
-Deps: rofi, wl-copy/xclip
-
-* file-organizer
-
-File sorting tool: categorizes files (imgs, docs, aud, vid, archives, installers, others) with pattern/regex matching, container folders, interactive menu, dry-run, and undo mode.
-
-Deps: bash 4+, coreutils (mkdir, mv, stat, date)
-
-* new-word
-
-Prompts for a word and definition via two rofi dialogs, appends the pair to =/mnt/hdd/words.txt=, shows notify-send confirmation.
-
-Deps: rofi, notify-send
-
-* timer
-
-Reads a duration (e.g. =5min=) and task name from stdin, runs =termdown= as countdown, plays =~/pigeon.mp3= via =paplay= on completion, logs to =/mnt/hdd/tasks-log.txt=.
-
-Deps: termdown, paplay
-
-* toglang
-
-Toggles keyboard layout between =us= and =ara= using =setxkbmap=.
-
-Deps: setxkbmap
-
-* tst
-
-Display-server detection script — prints "hi wayland" or "hi xorg" based on =$XDG_SESSION_TYPE=.
-
-Deps: none

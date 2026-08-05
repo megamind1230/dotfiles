@@ -1,0 +1,6 @@
+#!/bin/sh
+
+case "${XDG_SESSION_TYPE:-x11}" in
+  wayland) wlgif -o ~/Pictures/out.gif -d 0 ;;
+  *)       byzanz-record $(xrectsel "--x=%x --y=%y --width=%w --height=%h") ~/Pictures/out.gif ;;
+esac

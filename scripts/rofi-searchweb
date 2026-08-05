@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+query=$(printf "" | rofi -dmenu -p "Web Search:")
+[ -z "$query" ] && exit 0
+
+engine=$(printf "google\nduckduckgo\nbrave\ngithub\nyoutube\narch wiki\nman.archlinux" | rofi -dmenu -p "engine:" -mesg "searching: $query" -l 7)
+[ -z "$engine" ] && exit 0
+
+q=$(jq -rn --arg q "$query" '$q|@uri')
+
+case "$engine" in
+    "google")       url="https://www.google.com/search?q=$q" ;;
+    "duckduckgo")   url="https://duckduckgo.com/?q=$q" ;;
+    "brave")        url="https://search.brave.com/search?q=$q" ;;
+    "github")       url="https://github.com/search?q=$q" ;;
+    "youtube")      url="https://www.youtube.com/results?search_query=$q" ;;
+    "arch wiki")    url="https://wiki.archlinux.org/?search=$q" ;;
+    "man.archlinux") url="https://man.archlinux.org/search?q=$q" ;;
+    *)              url="https://www.google.com/search?q=$q" ;;
+esac
+
+xdg-open "$url"

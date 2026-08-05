@@ -1,9 +1,10 @@
 {
-    "modules-left": ["ext/workspaces"],
+    "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
     "modules-right": ["tray", "network", "pulseaudio", "battery"],
-    "ext/workspaces": {
+    "hyprland/workspaces": {
         "all-outputs": true,
+        "sort-by": "number",
         "on-click": "activate",
         "active-only": false,
         "format": "{name}",

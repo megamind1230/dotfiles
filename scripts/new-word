@@ -5,7 +5,7 @@
 # meaning=$(echo "" | fuzzel --dmenu --prompt="Add meaning: ")
 
 word=$(echo "" | rofi -dmenu -p "Add word: ")
-meaning=$(echo "" | rofi -dmenu -p "Add meaning: ")
+meaning=$(echo "" | rofi -dmenu -p "Add meaning/context: ")
 if [[ -n "$word" && -n "$meaning" ]]; then
     echo "$word | $meaning" >> "/mnt/hdd/words.txt"
     notify-send "Word Added" "'$word' added to dictionary"

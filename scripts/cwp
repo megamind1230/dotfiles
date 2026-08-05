@@ -5,17 +5,24 @@ if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
 
   [ -d "$WALLDIR" ] || exit 1
 
-  CHOICE=$(find "$WALLDIR" -type f \( \
-      -iname "*.jpg" -o \
-      -iname "*.jpeg" -o \
-      -iname "*.png" -o \
-      -iname "*.webp" \) | sort | \
+  # CHOICE=$(find "$WALLDIR" -type f \( \
+  #     -iname "*.jpg" -o \
+  #     -iname "*.jpeg" -o \
+  #     -iname "*.png" -o \
+  #     -iname "*.webp" \) | sort | \
+  #     fzf --preview 'chafa --size=40x20 {}')
+  # CHOICE=$(fd -HI -t f -e jpg -e jpeg -e png -e webp "$WALLDIR" | sort | \
+  #     fzf --preview 'chafa --size=40x20 {}')
+  CHOICE=$(fd -HI -t f -e jpg -e jpeg -e png -e webp . "$WALLDIR" | sort | \
       fzf --preview 'chafa --size=40x20 {}')
 
   if [ -n "$CHOICE" ]; then
-      hyprctl hyprpaper unload all
-      hyprctl hyprpaper preload "$CHOICE"
-      hyprctl hyprpaper wallpaper ",$CHOICE"
+      # hyprctl hyprpaper unload all
+      # hyprctl hyprpaper preload "$CHOICE"
+      # hyprctl hyprpaper wallpaper ",$CHOICE"  # v0.8: empty monitor is silently ignored
+      for mon in $(hyprctl monitors -j | jq -r '.[].name'); do
+          hyprctl hyprpaper wallpaper "$mon,$CHOICE"
+      done
   fi
 
 elif [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
@@ -24,11 +31,15 @@ elif [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
 
   [ -d "$WALLDIR" ] || exit 1
 
-  CHOICE=$(find "$WALLDIR" -type f \( \
-      -iname "*.jpg" -o \
-      -iname "*.jpeg" -o \
-      -iname "*.png" -o \
-      -iname "*.webp" \) | sort | \
+  # CHOICE=$(find "$WALLDIR" -type f \( \
+  #     -iname "*.jpg" -o \
+  #     -iname "*.jpeg" -o \
+  #     -iname "*.png" -o \
+  #     -iname "*.webp" \) | sort | \
+  #     fzf --preview 'chafa --size=40x20 {}')
+  # CHOICE=$(fd -HI -t f -e jpg -e jpeg -e png -e webp "$WALLDIR" | sort | \
+  #     fzf --preview 'chafa --size=40x20 {}')
+  CHOICE=$(fd -HI -t f -e jpg -e jpeg -e png -e webp . "$WALLDIR" | sort | \
       fzf --preview 'chafa --size=40x20 {}')
 
   [ -n "$CHOICE" ] && xwallpaper --focus "$CHOICE"

@@ -23,12 +23,14 @@ hl.env("TERMINAL", terminal)
 -- AUTOSTART (on boot) --
 -------------------------
 hl.on("hyprland.start", function()
-    hl.exec_cmd("waybar")
+    -- hl.exec_cmd("waybar")
+    hl.exec_cmd("ashell")
     hl.exec_cmd("dunst")
-    hl.exec_cmd("hyprpaper")
+    hl.exec_cmd("/home/dt/.config/hypr/wallpaper.sh")
     hl.exec_cmd("kwalletd6")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
+    hl.exec_cmd("emacs --daemon")
     hl.exec_cmd("xdg-mime default gwenview.desktop image/png")
     hl.exec_cmd("xdg-mime default gwenview.desktop image/jpeg")
 end)
@@ -104,7 +106,8 @@ hl.config({
 hl.config({
     misc = {
         force_default_wallpaper = -1,
-        disable_hyprland_logo = false,
+        disable_hyprland_logo = true,
+        disable_splash_rendering = true,
     },
 })
 
@@ -141,17 +144,15 @@ hl.bind(mainMod .. " + Q",       hl.dsp.window.close())
 hl.bind(mainMod .. " + W",       hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + R",       hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + Z",       hl.dsp.exec_cmd("emacs"))
+hl.bind(mainMod .. " + Z",       hl.dsp.exec_cmd("emacsclient -c"))
 hl.bind(mainMod .. " + O",       hl.dsp.exec_cmd("obsidian"))
 hl.bind(mainMod .. " + T",       hl.dsp.exec_cmd("Telegram"))
+hl.bind(mainMod .. " + B",       hl.dsp.exec_cmd("/home/dt/scripts/rofi-searchweb"))
 
--- Reload config + random wallpaper
+-- Random wallpaper
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(
-    "hyprctl dispatch 'hl.dsp.exec_cmd(\"hyprpaper\")' 2>/dev/null; " ..
-    "sleep 0.5; " ..
     "f=$(find /mnt/hdd/Favorites -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \\) -print | shuf -n 1); " ..
-    'hyprctl hyprpaper wallpaper "eDP-1,$f"; ' ..
-    "hyprctl reload"
+    'hyprctl hyprpaper wallpaper "eDP-1,$f"'
 ))
 
 -- Toggle float
@@ -171,8 +172,10 @@ for i = 1, 10 do
 end
 
 -- Special workspace (scratchpad)
-hl.bind(mainMod .. " + A",            hl.dsp.workspace.toggle_special("magic"))
-hl.bind(mainMod .. " + SHIFT + A",    hl.dsp.window.move({ workspace = "special:magic" }))
+-- hl.bind(mainMod .. " + A",            hl.dsp.workspace.toggle_special("magic"))
+-- hl.bind(mainMod .. " + SHIFT + A",    hl.dsp.window.move({ workspace = "special:magic" }))
+hl.bind(mainMod .. " + A",            hl.dsp.workspace.toggle_special("pad"))
+hl.bind(mainMod .. " + SHIFT + A",    hl.dsp.window.move({ workspace = "special:pad" }))
 
 -- Move/resize windows with mouse
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
@@ -221,6 +224,7 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("/home/dt/scripts/emote"))
 ------------------------------
 -- App workspace assignments
 hl.window_rule({ match = { class = "^(firefox)$" },        workspace = "2" }) --works
+hl.window_rule({ match = { class = "^(Emacs)$" },        workspace = "special:pad" }) --works
 hl.window_rule({ match = { class = "^(obsidian)$" },       workspace = "9" }) --works
 hl.window_rule({ match = { class = "^(discord)$" },        workspace = "10" }) --works
 
@@ -231,3 +235,20 @@ hl.window_rule({ match = { class = "^(gimp)$" },              workspace = "5" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.kdenlive)$" },          workspace = "5" })
 hl.window_rule({ match = { class = "^(ZenNotes)$" },          workspace = "9" })
 hl.window_rule({ match = { class = "^(org\\.telegram\\.desktop)$" }, workspace = "10" })
+
+
+-- mouseless-kanban
+hl.bind(mainMod .. " + ALT + K",     hl.dsp.exec_cmd("/home/dt/dev/mouseless-kanban/scripts/run.sh"))
+
+
+hl.window_rule({ match = { class = "Emacs" }, opacity = "0.80 override 0.80 override", })
+
+-- rofi open window fzf
+hl.bind(mainMod .. " + grave",       hl.dsp.exec_cmd("rofi -show window"))
+
+
+-- move/swap window in same workspace
+hl.bind(mainMod .. " + SHIFT + H", hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + SHIFT + J", hl.dsp.window.move({ direction = "down" }))
+hl.bind(mainMod .. " + SHIFT + K", hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.window.move({ direction = "right" }))

@@ -38,6 +38,8 @@ alias anki='/home/dt/anki-launcher-25.09-linux/anki'
 
 ## faster
 # alias date="date +'%d-%m-%Y %a @ %r'"
+alias e='emacsclient -c -a ""'
+alias oc='opencode'
 
 # git
 alias gst="git status"
@@ -49,10 +51,6 @@ alias mv="mv -i"
 alias mkdir="mkdir -p"
 mkcd() { mkdir -p "$1" && cd "$1"; }
 
-    # open nextlearn asap
-alias nxl="cd ~/proj/nextLearn-19-3/NextLearn/ ; dotnet run"
-    # open obsidian vault asap
-alias cdvault="cd /mnt/hdd/st/obsi/"
     # backup dotfiles folder
 alias backup-dotfiles='cp -r ~/dotfiles "/mnt/hdd/dotfiles-$(date +%d-%m-%y-backup)"'
 
@@ -64,18 +62,40 @@ alias fnv='nvim $(fd --hidden --exclude .git --type f | fzf --height=~30% --layo
   # to find files by content + open in neovim ASAP in current dir # redundant { function does this below instead }
 # alias rgnv='nvim $(rg "$1" | fzf --height=~30% --layout=default --border=double | cut -d : -f1)'
   # fuzzy manager {fzm}
-alias fzm=" find -type d | fzf --multi --height=80% --border=sharp \
+# alias fzm=" find -type d | fzf --multi --height=80% --border=sharp \
+# --preview='tree -C {}' --preview-window='45%,border-sharp' \
+# --prompt='Dirs > ' \
+# --bind='enter:execute($EDITOR {+})' \
+# --bind='del:execute(rm -ri {+})' \
+# --bind='ctrl-v:toggle-preview' \
+# --bind='ctrl-d:change-prompt(Dirs > )' \
+# --bind='ctrl-d:+reload(find -type d)' \
+# --bind='ctrl-d:+change-preview(tree -C {})' \
+# --bind='ctrl-d:+refresh-preview' \
+# --bind='ctrl-f:change-prompt(Files > )' \
+# --bind='ctrl-f:+reload(find -type f)' \
+# --bind='ctrl-f:+change-preview(cat {})' \
+# --bind='ctrl-f:+refresh-preview' \
+# --bind='ctrl-a:select-all' \
+# --bind='ctrl-x:deselect-all' \
+# --header '
+# CTRL-D to display directories | CTRL-F to display files
+# CTRL-A to select all | CTRL-x to deselect all
+# ENTER to edit | DEL to delete
+# CTRL-V to toggle preview
+# ' "
+alias fzm=" fd -HI -t d | fzf --multi --height=80% --border=sharp \
 --preview='tree -C {}' --preview-window='45%,border-sharp' \
 --prompt='Dirs > ' \
 --bind='enter:execute($EDITOR {+})' \
 --bind='del:execute(rm -ri {+})' \
 --bind='ctrl-v:toggle-preview' \
 --bind='ctrl-d:change-prompt(Dirs > )' \
---bind='ctrl-d:+reload(find -type d)' \
+--bind='ctrl-d:+reload(fd -HI -t d)' \
 --bind='ctrl-d:+change-preview(tree -C {})' \
 --bind='ctrl-d:+refresh-preview' \
 --bind='ctrl-f:change-prompt(Files > )' \
---bind='ctrl-f:+reload(find -type f)' \
+--bind='ctrl-f:+reload(fd -HI -t f)' \
 --bind='ctrl-f:+change-preview(cat {})' \
 --bind='ctrl-f:+refresh-preview' \
 --bind='ctrl-a:select-all' \
@@ -99,6 +119,7 @@ alias cdl='cd ~/Downloads/'
 alias cdcore='cd /mnt/hdd/hcore'
 # alias cdsol="cd /mnt/e/solve"
 # alias cdobsi="cd /mnt/e/st/obsi/vault_bank"
+alias cdobsi="cd /mnt/hdd/obsi/vault_bank/core"
 # alias cdesk="cd /mnt/c/Users/dt/Desktop"
 alias ls='ls -lath --color=auto --group-directories-first'
 # alias ter='$terminal'

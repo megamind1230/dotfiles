@@ -38,6 +38,8 @@
 ;; --------------------
 ;; no menu/tool/scroll bars
 ;; --------------------
+(setq native-comp-async-report-warnings-errors 'silent)
+
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (horizontal-scroll-bar-mode -1)
@@ -80,6 +82,8 @@
 (setq bookmark-default-file (expand-file-name "bookmarks" dt/state-dir))
 (setq recentf-save-file (expand-file-name "recentf" dt/state-dir))
 (setq savehist-file (expand-file-name "savehist" dt/state-dir))
+(savehist-mode 1)
+(setq savehist-additional-variables '(text-scale-mode-amount))
 (setq save-place-file (expand-file-name "places" dt/state-dir))
 (setq create-lockfiles nil)
 
@@ -93,7 +97,7 @@
 ;; --------------------
 ;; spaces over tabs
 ;; --------------------
-(setq-default indent-tabs-mode nil)    
+(setq-default indent-tabs-mode nil)
 
 ;; idk whether to uncomment or not
 ;; ;; Isolate the external clipboard
@@ -211,6 +215,10 @@
 ;;   (get-buffer-create "*scratch*"))
 ;; (setq initial-buffer-choice #'emacs-startup)
 ;; (setq dashboard-set-init-info nil)
+(add-hook 'after-init-hook
+  (lambda ()
+    (set-face-attribute 'default nil :family "Ubuntu Mono" :height 140)
+    (set-frame-font "Ubuntu Mono-18" nil t)))
 (setq initial-major-mode 'org-mode)
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message "")
@@ -272,7 +280,8 @@
 (setq org-capture-templates
       `(("t" "Temp-note" entry
          (file ,(expand-file-name "0-inbox.org" org-directory))
-         "* TODO %?\n  %U\n")))
+         ;; "* TODO %?\n  %U\n")))
+         "* %?\n")))
 ;; --------------------
 ;; GTD Agenda
 ;; --------------------
@@ -307,13 +316,18 @@
 ;; theme
 ;; --------------------
 ;; (Load-theme 'solarized-dark t)
-;; (load-theme 'leuven-dark t)
+(load-theme 'leuven-dark t)
+;; (load-theme 'modus-vivendi-tinted t)
+;; (use-package gruber-darker-theme
+;;   :ensure t)
+;; (load-theme 'gruber-darker t)
 
 
 ;; --------------------
 ;; recent files
 ;; --------------------
 (recentf-mode 1)
+(setq recentf-max-saved-items 50)
 (global-set-key (kbd "C-x C-r") #'recentf)
 
 
@@ -397,9 +411,9 @@
 ; (add-hook 'csharp-mode-hook #'lsp)
 ; (setq lsp-csharp-server-path "csharp-ls")
 
-;; ----------------------------
-;; i installed markdown-mode {melpa-stable version}
-;; ----------------------------
+;; i installed (markdown-mode)
+(use-package markdown-mode
+  :ensure t)
 
 ;; enable org export to markdown
 (require 'ox-md)
@@ -521,15 +535,16 @@
 
 (defun yas-completion-at-point ()
   "Yasnippet completion at point."
-  (when-let* ((tables (yas--get-snippet-tables))
-              (bounds (bounds-of-thing-at-point 'symbol)))
-    (let ((symbols (cl-mapcan
-                    (lambda (table)
-                      (cl-remove-if-not #'stringp (yas--table-all-keys table)))
-                    tables)))
-      `(,(car bounds) ,(cdr bounds) ,symbols
-        :annotation-function ,(lambda (cand) (concat " " "snippet"))
-        :exclusive 'no))))
+  (when (fboundp 'yas--get-snippet-tables)
+    (when-let* ((tables (yas--get-snippet-tables))
+                (bounds (bounds-of-thing-at-point 'symbol)))
+      (let ((symbols (cl-mapcan
+                      (lambda (table)
+                        (cl-remove-if-not #'stringp (yas--table-all-keys table)))
+                      tables)))
+        `(,(car bounds) ,(cdr bounds) ,symbols
+          :annotation-function ,(lambda (cand) (concat " " "snippet"))
+          :exclusive 'no)))))
 
 (add-to-list 'completion-at-point-functions #'yas-completion-at-point)
 
@@ -538,6 +553,7 @@
 ;; ----------------------------------------------------------------------
 (use-package yasnippet
   :ensure t
+  :demand t
   :hook ((csharp-mode . yas-minor-mode)
          (prog-mode . yas-minor-mode)))
   ;; (define-key yas-minor-mode-map [(tab)] nil)
@@ -579,11 +595,18 @@
 ;; RSS feed reader {elfeed}
 (use-package elfeed
   :ensure t)
-
 (setq elfeed-feeds
       '("https://www.youtube.com/feeds/videos.xml?channel_id=UCX5lX80yKjkzyXQWkkm3rOQ"
         "https://www.youtube.com/feeds/videos.xml?channel_id=UCngn7SVujlvskHRvRKc1cTw"
         "https://www.youtube.com/feeds/videos.xml?channel_id=UC11DKpZ9mdjdb5fbdb7ulRw"))
+(defun dt/elfeed-mark-all-read ()
+  "Mark all Elfeed entries as read."
+  (interactive)
+  (elfeed-search-untag-all-unread))
+(defun dt/elfeed-mark-all-unread ()
+  "Mark all Elfeed entries as unread."
+  (interactive)
+  (elfeed-search-tag-all-unread))
 
 ;; toggle evil-mode
 (global-set-key (kbd "C-c e") #'evil-mode)
@@ -630,7 +653,7 @@
 ;;     (delete-region beg end)
 ;;     (goto-char beg)
 ;;     (insert org-text)))
-(defun /md-to-org (beg end)
+(defun dt/md-to-org (beg end)
   "Convert selected Markdown text to Org format in-place."
   (interactive "r")
   (unless (use-region-p)
@@ -644,6 +667,62 @@
              (point-min)
              (point-max)
              "pandoc -f markdown -t org"
+             t t)
+
+            ;; Remove CUSTOM_ID property drawers
+            (goto-char (point-min))
+            (while (re-search-forward
+                    "^:PROPERTIES:\n:CUSTOM_ID:.*\n:END:\n?"
+                    nil t)
+              (replace-match ""))
+
+            (buffer-string))))
+
+    (delete-region beg end)
+    (goto-char beg)
+    (insert org-text)))
+
+(defun dt/org-to-md (beg end)
+  "Convert selected Org text to Markdown format in-place."
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "No region selected"))
+
+  (let* ((org-text (buffer-substring-no-properties beg end))
+         (md-text
+          (with-temp-buffer
+            (insert org-text)
+            (shell-command-on-region
+             (point-min)
+             (point-max)
+             "pandoc -f org -t gfm"
+             t t)
+
+            ;; Strip pandoc markdown attributes like {.done .DONE}
+            (goto-char (point-min))
+            (while (re-search-forward "{[^}]*}" nil t)
+              (replace-match ""))
+
+            (buffer-string))))
+
+    (delete-region beg end)
+    (goto-char beg)
+    (insert md-text)))
+
+(defun dt/html-to-org (beg end)
+  "Convert selected HTML text to Org format in-place."
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "No region selected"))
+
+  (let* ((html (buffer-substring-no-properties beg end))
+         (org-text
+          (with-temp-buffer
+            (insert html)
+            (shell-command-on-region
+             (point-min)
+             (point-max)
+             "pandoc -f html -t org"
              t t)
 
             ;; Remove CUSTOM_ID property drawers
@@ -720,13 +799,14 @@
 
   ;; Projects
   (define-key leader-map (kbd "p") nil)
-  (define-key leader-map (kbd "pp") #'project-switch-project)
-  (define-key leader-map (kbd "pf") #'project-find-file)
-  (define-key leader-map (kbd "pg") #'project-find-regexp)
-  (define-key leader-map (kbd "pb") #'project-switch-to-buffer)
+  (define-key leader-map (kbd "psp") #'project-switch-project)
+  (define-key leader-map (kbd "pff") #'project-find-file)
+  (define-key leader-map (kbd "pfd") #'project-find-dir)
+  (define-key leader-map (kbd "pfg") #'project-find-regexp)
+  (define-key leader-map (kbd "psb") #'project-switch-to-buffer)
   (define-key leader-map (kbd "pd") #'project-dired)
   (define-key leader-map (kbd "pe") (lambda () (interactive) (let ((default-directory (if-let* ((p (project-current))) (project-root p) default-directory))) (eshell t))))
-  (define-key leader-map (kbd "pk") #'project-kill-buffers)
+  (define-key leader-map (kbd "pkb") #'project-kill-buffers)
 
   ;; Windows
   (define-key leader-map (kbd "w") nil)
@@ -900,6 +980,7 @@
 ;;   :config
 ;;   (delete-selection-mode 1))
 
+;;(delete-selection-mode 1)
 
 ;; alternative buffer fast switching
 (global-set-key (kbd "C-x C-a") #'mode-line-other-buffer)
@@ -989,7 +1070,7 @@
     (call-interactively #'consult-grep)))
 (global-set-key (kbd "C-c v g") #'dt/vault-grep)
 
-;; wiki link style for .md 
+;; wiki link style for .md
 (defun dt/insert-link (file title)
   (interactive
    (progn
@@ -1089,3 +1170,103 @@ Examples:
 (put 'narrow-to-region 'disabled nil)
 
 ;; i installed (key-quiz package)
+(use-package key-quiz
+  :ensure t)
+
+;; i installed (evil-surround)
+(use-package evil-surround
+  :ensure t)
+
+(setq-default show-trailing-whitespace t)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; --------------------
+;; Markdown - org-like cycling + navigation for evil
+;; --------------------
+(with-eval-after-load 'markdown-mode
+  (evil-define-key 'normal markdown-mode-map
+    (kbd "TAB")       #'markdown-cycle
+    (kbd "<backtab>") #'markdown-shifttab
+    "gx"              #'markdown-follow-thing-at-point))
+
+
+;; i installed (consult)
+(use-package consult
+  :ensure t
+
+  :bind
+  (("C-c r" . consult-ripgrep))
+  )
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  ;;:init
+  ;; Optionally replace the key help with a completing-read interface
+  ;;(setq prefix-help-command #'embark-prefix-help-command)
+  ;; Show the Embark target at point via Eldoc. You may adjust the
+  ;; Eldoc strategy, if you want to see the documentation from
+  ;; multiple providers. Beware that using this can be a little
+  ;; jarring since the message shown in the minibuffer can be more
+  ;; than one line, causing the modeline to move up and down:
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  ;; Add Embark to the mouse context menu. Also enable `context-menu-mode'.
+  ;; (context-menu-mode 1)
+  ;; (add-hook 'context-menu-functions #'embark-context-menu 100)
+  ;;:config
+  ;; Hide the mode line of the Embark live/completions buffers
+ ;; (add-to-list 'display-buffer-alist
+ ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+ ;;                nil
+ ;;                (window-parameters (mode-line-format . none)))))
+  )
+;; Consult users will also want the embark-consult package.
+; only need to install it, embark loads it after consult if found
+(use-package embark-consult
+  :ensure t)
+
+;; ;; transparency
+;; (add-to-list 'default-frame-alist '(alpha . 50))
+
+;; ctrl d/u zz
+(defun dt/scroll-down-centered ()
+  "Scroll down half a page and center the cursor."
+  (interactive)
+  (evil-scroll-down nil)
+  (evil-scroll-line-to-center nil))
+(defun dt/scroll-up-centered ()
+  "Scroll up half a page and center the cursor."
+  (interactive)
+  (evil-scroll-up nil)
+  (evil-scroll-line-to-center nil))
+(with-eval-after-load 'evil
+  (define-key evil-normal-state-map
+              (kbd "C-d")
+              #'dt/scroll-down-centered)
+  (define-key evil-normal-state-map
+              (kbd "C-u")
+              #'dt/scroll-up-centered))
+
+
+
+;; embark (custom vertical/horizontal splits)
+(defun dt/find-file-split-below (file)
+  "Open FILE in a horizontal split below."
+  ; (interactive)
+  (select-window (split-window-below))
+  (find-file file))
+(defun dt/find-file-split-right (file)
+  "Open FILE in a vertical split to the right."
+  ; (interactive)
+  (select-window (split-window-right))
+  (find-file file))
+
+(with-eval-after-load 'embark
+  (define-key embark-file-map (kbd "2")
+    #'dt/find-file-split-below)
+  (define-key embark-file-map (kbd "3")
+    #'dt/find-file-split-right))

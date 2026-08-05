@@ -14,10 +14,11 @@ alias nvimlazy="NVIM_APPNAME=LazyVim nvim"
 alias nvimkick="NVIM_APPNAME=KickStart nvim"
 alias nvimchad="NVIM_APPNAME=NvChad nvim"
 alias nvimastro="NVIM_APPNAME=AstroNvim nvim"
+alias nvimtest="NVIM_APPNAME=nvimtest nvim"
 alias one="NVIM_APPNAME=one nvim"
 # alias two="NVIM_APPNAME=two nvim"
 nvims() {
-  local items=("default" "KickStart" "LazyVim" "NvChad" "AstroNvim" "one" "two")
+  local items=("default" "KickStart" "LazyVim" "NvChad" "AstroNvim" "one" "nvimtest" )
   local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
   if [[ -z "$config" ]]; then
     echo "Nothing selected"
@@ -57,7 +58,8 @@ rgnv() {
 }
 
 rgnvp() {
-    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    # dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    dir=$(fd -HI -t d . "$HOME" 2>/dev/null | fzf --prompt="Select directory: ")
     [ -z "$dir" ] && return
     result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
         | fzf --ansi \
@@ -73,13 +75,15 @@ rgnvp() {
 }
 
 fzy() {
-    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    # dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    dir=$(fd -HI -t d . "$HOME" 2>/dev/null | fzf --prompt="Select directory: ")
     [ -z "$dir" ] && return
     yazi "$dir"
 }
 
 rgy() {
-    dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    # dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
+    dir=$(fd -HI -t d . "$HOME" 2>/dev/null | fzf --prompt="Select directory: ")
     [ -z "$dir" ] && return
     result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
         | fzf --ansi \
@@ -157,7 +161,8 @@ crondo() { # rondo with copy
         cd /mnt/hdd/hcore
         local item
 
-        item=$(find . -maxdepth 1 -type f -printf '%f\n' | shuf -n 1)
+        # item=$(find . -maxdepth 1 -type f -printf '%f\n' | shuf -n 1)
+        item=$(fd -HI -d 1 -t f -x basename {} | shuf -n 1)
 
         if [[ -z "$item" ]]; then
             echo "No files found in directory"
@@ -214,18 +219,18 @@ crondo() { # rondo with copy
 #     tmux attach -t codeforces
 # }
 
-# codeforces
-cf() {
-    local url="$1"
+# naming convesion for the following functions is : website( cf for codeforces /lt for leetcode ) + language(cs,c,cpp,py,go,rs) +  IDE( n for nvimtest, e for emacs, h for helix )
+# codeforces(emacs)
+cfe() {
+    local url
+    read -p "Problem link: " url
     local id
     id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
-    local dir="$HOME/cp/$codeforces-id"
-
+    local dir="$HOME/cp/codeforces-$id"
     rm -rf "$dir"
     cp -r "$HOME/cp/template" "$dir"
     mv "$dir/template.csproj" "$dir/codeforces-$id.csproj"
     touch "$dir/input.txt" "$dir/output.txt"
-
     if timeout 2 emacsclient -e t &>/dev/null; then
         emacsclient -c -n --eval "(dt/codeforces-open \"$dir\")"
     else
@@ -233,24 +238,46 @@ cf() {
     fi
 }
 
-
-# leetcode
-lt() {
-    local id="$1"
-    # local id
-    # id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
+# leetcode(emacs)
+lte() {
+    local id
+    read -p "Problem number: " id
     local dir="$HOME/cp/leetcode-$id"
-
     rm -rf "$dir"
     cp -r "$HOME/cp/template" "$dir"
     mv "$dir/template.csproj" "$dir/leetcode-$id.csproj"
     touch "$dir/input.txt" "$dir/output.txt"
-
     if timeout 2 emacsclient -e t &>/dev/null; then
         emacsclient -c -n --eval "(dt/codeforces-open \"$dir\")"
     else
         emacs --eval "(dt/codeforces-open \"$dir\")" &
     fi
+}
+
+# codeforces (nvim)
+cfn() {
+    local url
+    read -p "Problem link: " url
+    local id
+    id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
+    local dir="$HOME/cp/codeforces-$id"
+    rm -rf "$dir"
+    cp -r "$HOME/cp/template" "$dir"
+    mv "$dir/template.csproj" "$dir/codeforces-$id.csproj"
+    touch "$dir/input.txt" "$dir/output.txt"
+    nvimtest --cmd "cd $dir" -c "lua require('competition').open('$dir')"
+}
+
+# leetcode (nvim)
+ltn() {
+    local id
+    read -p "Problem number: " id
+    local dir="$HOME/cp/leetcode-$id"
+    rm -rf "$dir"
+    cp -r "$HOME/cp/template" "$dir"
+    mv "$dir/template.csproj" "$dir/leetcode-$id.csproj"
+    touch "$dir/input.txt" "$dir/output.txt"
+    nvimtest --cmd "cd $dir" -c "lua require('competition').open('$dir')"
 }
 
 # helpers
