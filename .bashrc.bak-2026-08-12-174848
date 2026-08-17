@@ -8,7 +8,6 @@ case $- in
       *) return;;
 esac
 
-# ── history ────────────────────────────────────────────────────────────────
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -20,7 +19,6 @@ shopt -s histappend
 HISTSIZE=1000
 HISTFILESIZE=2000
 
-# ── shell options ──────────────────────────────────────────────────────────
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
@@ -32,37 +30,11 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 #[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-# ── environment ────────────────────────────────────────────────────────────
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-# opencode
-export PATH=/home/dt/.opencode/bin:$PATH
-
-# exports & PATH
-export MANPAGER='nvim +Man!'
-export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
-export EDITOR='nvim'
-export VISUAL='nvim'
-export BROWSER='brave-browser'
-export TERMINAL=/usr/bin/kitty
-# for lunar vim
-export PATH=/home/dt/.local/bin:$PATH
-# for doom
-# export PATH=/home/dt/.config/emacs/bin:$PATH
-export PATH="$HOME/.config/emacs/bin:$PATH"
-export PATH="$HOME/.emacs.d/bin:$PATH"
-# add scripts folder to my path
-export PATH="/home/dt/scripts/:$PATH"
-# add dotnet tools
-export PATH="$HOME/.dotnet/tools:$PATH"
-PATH="$PATH:/opt/nvim-linux-x86_64/bin"
-export SCREENREC_AUDIO_SINK=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor
-export SCREENREC_AUDIO_SOURCE=alsa_input.pci-0000_00_1b.0.analog-stereo
-
-# ── prompt ─────────────────────────────────────────────────────────────────
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes;;
@@ -100,7 +72,6 @@ xterm*|rxvt*)
     ;;
 esac
 
-# ── ls color support ───────────────────────────────────────────────────────
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
@@ -121,7 +92,6 @@ fi
 #alias la='ls -A'
 #alias l='ls -CF'
 
-# ── programmable completion ────────────────────────────────────────────────
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
@@ -139,7 +109,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# ── extensions ─────────────────────────────────────────────────────────────
+
 #create a file called .bashrc-personal and put all your personal aliases
 #in there. They will not be overwritten by skel.
 
@@ -149,3 +119,30 @@ fi
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
+
+
+# opencode
+export PATH=/home/dt/.opencode/bin:$PATH
+
+
+
+# exports & PATH
+export MANPAGER='nvim +Man!'
+export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
+export EDITOR='nvim'
+export VISUAL='nvim'
+export BROWSER='brave'
+export TERMINAL=/usr/bin/kitty
+# for lunar vim 
+export PATH=/home/dt/.local/bin:$PATH
+# for doom
+# export PATH=/home/dt/.config/emacs/bin:$PATH
+export PATH="$HOME/.config/emacs/bin:$PATH"
+export PATH="$HOME/.emacs.d/bin:$PATH"
+# add scripts folder to my path
+export PATH="/home/dt/scripts/:$PATH"
+# add dotnet tools
+export PATH="$HOME/.dotnet/tools:$PATH"
+PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+export SCREENREC_AUDIO_SINK=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor
+export SCREENREC_AUDIO_SOURCE=alsa_input.pci-0000_00_1b.0.analog-stereo

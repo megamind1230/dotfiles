@@ -1,0 +1,7 @@
+[
+  {
+    "bindings": {
+      "alt-x": "command_palette::Toggle"
+    }
+  }
+]

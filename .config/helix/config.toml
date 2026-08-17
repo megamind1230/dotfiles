@@ -1,0 +1,17 @@
+theme = "peachpuff"
+[editor]
+line-number = "absolute"
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[keys.normal.space]
+r = [":write-all!", ":sh bash run.sh", ":reload-all"]
+l = [":vsplit input.txt", ":hsplit output.txt"]
+
+[keys.insert.j]
+k = "normal_mode"
+
+

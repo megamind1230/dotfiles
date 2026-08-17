@@ -147,7 +147,7 @@
 
 ;; installed corfu / corfu-terminal / cape
 ;; Enable indentation and completion using the TAB key.
-;;(setq tab-always-indent 'complete)
+(setq tab-always-indent 'complete)
 ;; Make the completion suggest file paths.
 ;;(add-hook 'completion-at-point-functions #'cape-file)
 ;; Activate in buffer completion everywhere.
@@ -217,8 +217,8 @@
 ;; (setq dashboard-set-init-info nil)
 (add-hook 'after-init-hook
   (lambda ()
-    (set-face-attribute 'default nil :family "Ubuntu Mono" :height 140)
-    (set-frame-font "Ubuntu Mono-18" nil t)))
+    (set-face-attribute 'default nil :family "Ubuntu Mono" :height 148)
+    (set-frame-font "Ubuntu Mono-16" nil t)))
 (setq initial-major-mode 'org-mode)
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message "")
@@ -258,11 +258,11 @@
 ;; Org basics
 ;; --------------------
 (require 'org)
-(setq org-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/org"))
+(setq org-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/core/my-org-agenda/"))
 (setq org-agenda-files (list org-directory))
 ;; Default notes file (important!)
 (setq org-default-notes-file
-      (expand-file-name "inbox.org" org-directory))
+      (expand-file-name "0-inbox.org" org-directory))
 ;; --------------------
 ;; TODO workflow
 ;; --------------------
@@ -529,9 +529,60 @@
       (corfu-terminal-mode +1))))
 
 (when (require 'cape nil t)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-keyword))
+  ;; (add-to-list 'completion-at-point-functions #'cape-file)
+  ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  ;; (add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;; (add-hook 'completion-at-point-functions #'cape-file -10)
+  ;; (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  ;; (add-hook 'completion-at-point-functions #'cape-keyword)
+  ;; (defun dt/setup-cape ()
+  ;;   "Add cape backends and clean up junk from buffer-local capf."
+  ;;   (add-hook 'completion-at-point-functions #'cape-file -10)
+  ;;   (add-hook 'completion-at-point-functions #'cape-dabbrev nil)
+  ;;   (add-hook 'completion-at-point-functions #'cape-keyword nil)
+  ;;   (setq-local completion-at-point-functions
+  ;;               (remove 'ispell-completion-at-point
+  ;;                       (remove 't completion-at-point-functions))))
+  ;; (add-hook 'after-change-major-mode-hook #'dt/setup-cape)
+  ;; (dt/setup-cape)
+
+  ;; Bulletproof fix: advise completion-at-point to always include cape-file.
+  ;; Hooks get overwritten by mode setup — this runs every time capf is called.
+  (defun dt/ensure-cape-file ()
+    "Ensure cape-file is in completion-at-point-functions."
+    (unless (memq #'cape-file completion-at-point-functions)
+      (setq-local completion-at-point-functions
+                  (cons #'cape-file completion-at-point-functions))))
+  (advice-add 'completion-at-point :before #'dt/ensure-cape-file))
+
+;; M-/ for completion — global binding (evil-insert-state-map didn't work)
+(global-set-key (kbd "M-/") #'completion-at-point)
+
+;; diagnostic: verify corfu-mode activates
+;; (add-hook 'find-file-hook
+;;           (lambda () (message "[corfu-debug] mode=%s auto=%s capf=%s"
+;;                               (bound-and-true-p corfu-mode)
+;;                               (bound-and-true-p corfu-auto)
+;;                               completion-at-point-functions)))
+
+;; diagnostic: test cape-file directly
+;; (defun dt/test-cape-file ()
+;;   "Call cape-file and show what it returns."
+;;   (interactive)
+;;   (let ((result (cape-file)))
+;;     (message "[cape-file-test] result=%s point=%d text='%s'"
+;;              (if result (list (nth 0 result) (nth 1 result) (length (nth 2 result))) nil)
+;;              (point)
+;;              (buffer-substring (max (point-min) (- (point) 20)) (point)))))
+
+;; diagnostic: test completion-at-point directly
+;; (defun dt/test-capf ()
+;;   "Call completion-at-point and show what it returns."
+;;   (interactive)
+;;   (let ((result (completion-at-point)))
+;;     (message "[capf-test] result=%s capf=%s"
+;;              (if result (list (nth 0 result) (nth 1 result)) nil)
+;;              completion-at-point-functions)))
 
 (defun yas-completion-at-point ()
   "Yasnippet completion at point."
@@ -793,8 +844,9 @@
 
   ;; Files
   (define-key leader-map (kbd "f") nil)
-  (define-key leader-map (kbd "ff") #'find-file)
+  ;; (define-key leader-map (kbd "ff") #'find-file)
   (define-key leader-map (kbd "fs") #'save-buffer)
+  (define-key leader-map (kbd "cfd") #'consult-fd)
   ;; (define-key leader-map (kbd "fr") (if (fboundp 'consult-recent-file) #'consult-recent-file #'recentf-open-files))
 
   ;; Projects
@@ -985,31 +1037,40 @@
 ;; alternative buffer fast switching
 (global-set-key (kbd "C-x C-a") #'mode-line-other-buffer)
 
-;; ;; denote
-;; ;; Remember that the website version of this manual shows the latest
-;; ;; developments, which may not be available in the package you are
-;; ;; using.  Instead of copying from the web site, refer to the version
-;; ;; of the documentation that comes with your package.  Evaluate:
-;; ;;
-;; ;;     (info "(denote) Sample configuration")
-;; (use-package denote
-;;   :ensure t
-;;   :hook (dired-mode . denote-dired-mode)
-;;   :bind
-;;   (("C-c d n" . denote)
-;;    ("C-c d r" . denote-rename-file)
-;;    ("C-c d l" . denote-link)
-;;    ("C-c d b" . denote-backlinks)
-;;    ("C-c d d" . denote-dired)
-;;    ("C-c d g" . denote-grep))
-;;   :config
-;;   (setq denote-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/"))
+;; denote
+;; Remember that the website version of this manual shows the latest
+;; developments, which may not be available in the package you are
+;; using.  Instead of copying from the web site, refer to the version
+;; of the documentation that comes with your package.  Evaluate:
+;;
+;;     (info "(denote) Sample configuration")
+(use-package denote
+  :ensure t
+  :hook (dired-mode . denote-dired-mode)
+  :bind
+  (("C-c d n" . denote)
+   ("C-c d r" . denote-rename-file)
+   ("C-c d l" . denote-link)
+   ("C-c d b" . denote-backlinks)
+   ("C-c d d" . denote-dired)
+   ("C-c d g" . denote-grep))
+  :config
+  (setq denote-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/"))
 
-;;   ;; Automatically rename Denote buffers when opening them so that
-;;   ;; instead of their long file name they have, for example, a literal
-;;   ;; "[D]" followed by the file's title.  Read the docstring of
-;;   ;; `denote-rename-buffer-format' for how to modify this.
-;;   (denote-rename-buffer-mode 1))
+  ;; Automatically rename Denote buffers when opening them so that
+  ;; instead of their long file name they have, for example, a literal
+  ;; "[D]" followed by the file's title.  Read the docstring of
+  ;; `denote-rename-buffer-format' for how to modify this.
+  (denote-rename-buffer-mode 1))
+
+(defun dt/cd-denote ()
+  "Change the current buffer's `default-directory' to the denote directory."
+  (interactive)
+  (setq default-directory
+        (expand-file-name (or (bound-and-true-p denote-directory)
+                              "/mnt/hdd/obsi/vault_bank/")))
+  (message "pwd: %s" default-directory))
+(global-set-key (kbd "C-c d c") #'dt/cd-denote)
 
 
 ;; --------------------
@@ -1021,22 +1082,24 @@
    (server-force-delete)
    (server-start)))
 
-;; golden-ratio
-(unless (package-installed-p 'golden-ratio)
-  (package-refresh-contents)
-  (package-install 'golden-ratio))
-(require 'golden-ratio)
-(golden-ratio-mode 1)
+;; golden-ratio { TEMPORARILY DISABLED - may block corfu popup }
+;; (unless (package-installed-p 'golden-ratio)
+;;   (package-refresh-contents)
+;;   (package-install 'golden-ratio))
+;; (require 'golden-ratio)
+;; (golden-ratio-mode 1)
 
 ;; CF project layout
-(defun dt/codeforces-open (dir)
-  "Open CF problem layout: Program.cs left, input/output/vterm right."
-  (interactive (list (read-directory-name "CF dir: " "~/cp/")))
-  (let* ((proj-cs  (expand-file-name "Program.cs" dir))
+(defun dt/cp-open (dir &optional mainfile)
+  "Open CP problem layout: main file left, input/output/vterm right."
+  (interactive (list (read-directory-name "CP dir: " "~/cp/")
+                     (read-string "Main file: " "Program.cs")))
+  (let* ((main-file (or mainfile "Program.cs"))
+         (proj-main (expand-file-name main-file dir))
          (input-txt (expand-file-name "input.txt" dir))
          (output-txt (expand-file-name "output.txt" dir)))
     (delete-other-windows)
-    (find-file proj-cs)
+    (find-file proj-main)
     (split-window-right)
     (other-window 1)
     (find-file input-txt)
@@ -1270,3 +1333,6 @@ Examples:
     #'dt/find-file-split-below)
   (define-key embark-file-map (kbd "3")
     #'dt/find-file-split-right))
+
+;; auto select/focus newly opened help buffers
+(setq help-window-select t)

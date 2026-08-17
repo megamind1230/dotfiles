@@ -1,0 +1,13 @@
+[modules]
+left = ["Workspaces"]
+center = ["Tempo"]
+right = [["Tray", "Privacy", "Settings"]]
+
+[tempo]
+clock_format = "%I:%M %p"
+
+[settings]
+audio_indicator_format = "IconAndPercentage"
+
+[appearance]
+workspace_colors = [{ base = "#e0af68", text = "#1a1b26" }]

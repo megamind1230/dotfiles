@@ -1,0 +1,4 @@
+inherits = "peachpuff"
+
+"ui.cursor.insert" = "#FFD700"
+"ui.cursor.primary.insert" = "#FFD700"

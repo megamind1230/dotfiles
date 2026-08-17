@@ -1,0 +1,64 @@
+{
+  "plugins": {
+    "easy-dotnet.nvim": {
+      "rev": "aa9c65fb34ec6f86cf8174eac69a8a217cc7c47e",
+      "src": "https://github.com/GustavEikaas/easy-dotnet.nvim"
+    },
+    "lualine.nvim": {
+      "rev": "221ce6b2d999187044529f49da6554a92f740a96",
+      "src": "https://github.com/nvim-lualine/lualine.nvim"
+    },
+    "mini.icons": {
+      "rev": "98faae31e9be1cc054ae63485e58ceb185efcad0",
+      "src": "https://github.com/echasnovski/mini.icons"
+    },
+    "mini.nvim": {
+      "rev": "629bf6792187e11b4829411c1648f86f28df3963",
+      "src": "https://github.com/nvim-mini/mini.nvim"
+    },
+    "nvim-colorizer.lua": {
+      "rev": "a065833f35a3a7cc3ef137ac88b5381da2ba302e",
+      "src": "https://github.com/norcalli/nvim-colorizer.lua"
+    },
+    "nvim-treesitter": {
+      "rev": "c9f9ed6c1892f629ea399f4ee7905f2686fa13f2",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter"
+    },
+    "nvim-web-devicons": {
+      "rev": "2ae6958df7ced50baac5035cec0c15799eedfbf7",
+      "src": "https://github.com/nvim-tree/nvim-web-devicons"
+    },
+    "oil.nvim": {
+      "rev": "b73018b75affd13fa38e2fc94ef753b465f770d7",
+      "src": "https://github.com/stevearc/oil.nvim"
+    },
+    "org-bullets.nvim": {
+      "rev": "503fe053550879cc202086a40454e46a87c41ddb",
+      "src": "https://github.com/nvim-orgmode/org-bullets.nvim"
+    },
+    "org-roam.nvim": {
+      "rev": "0240378c92eb0c9d6bc4ccbc8a6046e3c3d02ece",
+      "src": "https://github.com/chipsenkbeil/org-roam.nvim"
+    },
+    "orgmode": {
+      "rev": "f32a06d4b5399dad8bf0478c772bf6c513f02dcf",
+      "src": "https://github.com/nvim-orgmode/orgmode"
+    },
+    "plenary.nvim": {
+      "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
+      "src": "https://github.com/nvim-lua/plenary.nvim"
+    },
+    "telescope-orgmode.nvim": {
+      "rev": "214fe56e105bb3d0638f33320ed959911a1bfcb1",
+      "src": "https://github.com/nvim-orgmode/telescope-orgmode.nvim"
+    },
+    "telescope.nvim": {
+      "rev": "427b576c16792edad01a92b89721d923c19ad60f",
+      "src": "https://github.com/nvim-telescope/telescope.nvim"
+    },
+    "twilight.nvim": {
+      "rev": "664e752f4a219801265cc3fc18782b457b58c1e1",
+      "src": "https://github.com/folke/twilight.nvim"
+    }
+  }
+}

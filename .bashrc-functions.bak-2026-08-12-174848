@@ -1,4 +1,5 @@
-# ── package management ─────────────────────────────────────────────────────
+# functions
+
 # pacman & aur helpers Install
 inst()  { sudo pacman -S "$@"; }
 pinst() { paru -S "$@"; }
@@ -8,57 +9,21 @@ search()  { pacman -Ss "$@" | tac; }
 psearch() { paru -Ss "$@" | tac; }
 # ysearch() { yay -Ss "$@" | tac; }
 
-# ── archives ───────────────────────────────────────────────────────────────
-ex() {
-    if [ -z "$1" ]; then
-        echo "Usage: ex <archive-file>"
-        return 1
-    fi
-    if [ ! -f "$1" ]; then
-        echo "File not found: $1"
-        return 1
-    fi
-    case "$1" in
-        *.tar)         tar -xvf "$1" ;;
-        *.tar.gz|*.tgz) tar -xzvf "$1" ;;
-        *.tar.bz2)     tar -xjvf "$1" ;;
-        *.tar.xz)      tar -xJvf "$1" ;;
-        *.zip)         unzip "$1" ;;
-        *.rar)         unrar x "$1" ;;
-        *.7z)          7z x "$1" ;;
-        *.gz)          gunzip "$1" ;;
-        *.bz2)         bunzip2 "$1" ;;
-        *) echo "Unsupported archive format." ;;
-    esac
-}
-
-compress() {
-    if [ -z "$1" ] || [ -z "$2" ]; then
-        echo "Usage: compress <output-file> <file-or-folder>"
-        return 1
-    fi
-    case "$1" in
-        *.tar)         tar -cvf "$1" "$2" ;;
-        *.tar.gz|*.tgz) tar -czvf "$1" "$2" ;;
-        *.tar.bz2)     tar -cjvf "$1" "$2" ;;
-        *.tar.xz)      tar -cJvf "$1" "$2" ;;
-        *.zip)         zip -r "$1" "$2" ;;
-        *.7z)          7z a "$1" "$2" ;;
-        *) echo "Unsupported archive format." ;;
-    esac
-}
-
-# ── nvim switcher ──────────────────────────────────────────────────────────
-# nvim config switcher (journal = default nvim, LazyVim = coding config)
+# nvim config swticher
 alias nvimlazy="NVIM_APPNAME=LazyVim nvim"
-alias lz="NVIM_APPNAME=LazyVim nvim"
+alias nvimkick="NVIM_APPNAME=KickStart nvim"
+alias nvimchad="NVIM_APPNAME=NvChad nvim"
+alias nvimastro="NVIM_APPNAME=AstroNvim nvim"
+alias nvimtest="NVIM_APPNAME=nvimtest nvim"
+alias one="NVIM_APPNAME=one nvim"
+# alias two="NVIM_APPNAME=two nvim"
 nvims() {
-  local items=("nvim" "LazyVim" )
+  local items=("default" "KickStart" "LazyVim" "NvChad" "AstroNvim" "one" "nvimtest" )
   local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
   if [[ -z "$config" ]]; then
     echo "Nothing selected"
     return 0
-  elif [[ "$config" == "nvim" ]]; then
+  elif [[ "$config" == "default" ]]; then
     config=""
   fi
   NVIM_APPNAME="$config" nvim "$@"
@@ -69,7 +34,7 @@ scriptsRun() {
     local script
     script=$(
         for f in ~/scripts/*; do
-            [[ -f "$f" ]] && [[ -x "$f" ]] && basename "$f"
+            [[ -f "$f" ]] && basename "$f"
         done | fzf
     )
     [[ -z "$script" ]] && return
@@ -77,7 +42,6 @@ scriptsRun() {
 }
 bind -x '"\eS":scriptsRun'
 
-# ── fuzzy search ───────────────────────────────────────────────────────────
 rgnv() {
     dir="$PWD"
     result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
@@ -134,15 +98,46 @@ rgy() {
     yazi "$parent"
 }
 
-# ── utilities ──────────────────────────────────────────────────────────────
-path() { echo -e "${PATH//:/\\n}"; }
-pubip() { curl -s ifconfig.me; echo; }
-ports() { ss -tulanp; }
-up() {
-    local d=""
-    for i in $(seq 1 "${1:-1}"); do d="../$d"; done
-    cd "$d"
+
+ex() {
+    if [ -z "$1" ]; then
+        echo "Usage: ex <archive-file>"
+        return 1
+    fi
+    if [ ! -f "$1" ]; then
+        echo "File not found: $1"
+        return 1
+    fi
+    case "$1" in
+        *.tar)         tar -xvf "$1" ;;
+        *.tar.gz|*.tgz) tar -xzvf "$1" ;;
+        *.tar.bz2)     tar -xjvf "$1" ;;
+        *.tar.xz)      tar -xJvf "$1" ;;
+        *.zip)         unzip "$1" ;;
+        *.rar)         unrar x "$1" ;;
+        *.7z)          7z x "$1" ;;
+        *.gz)          gunzip "$1" ;;
+        *.bz2)         bunzip2 "$1" ;;
+        *) echo "Unsupported archive format." ;;
+    esac
 }
+
+compress() {
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: compress <output-file> <file-or-folder>"
+        return 1
+    fi
+    case "$1" in
+        *.tar)         tar -cvf "$1" "$2" ;;
+        *.tar.gz|*.tgz) tar -czvf "$1" "$2" ;;
+        *.tar.bz2)     tar -cjvf "$1" "$2" ;;
+        *.tar.xz)      tar -cJvf "$1" "$2" ;;
+        *.zip)         zip -r "$1" "$2" ;;
+        *.7z)          7z a "$1" "$2" ;;
+        *) echo "Unsupported archive format." ;;
+    esac
+}
+
 
 # quotes="/mnt/e/st/obsi/vault_bank/my-quotes.txt"
 quotes="/mnt/hdd/st/obsi/vault_bank/my-quotes.txt"
@@ -190,7 +185,6 @@ crondo() { # rondo with copy
     done
 }
 
-# ── competitive programming ────────────────────────────────────────────────
 # cf-old() {
 #     local url="$1"
 #
@@ -225,7 +219,7 @@ crondo() { # rondo with copy
 #     tmux attach -t codeforces
 # }
 
-# naming convention: website( cf=codeforces /lt=leetcode ) + language(cs,c,cpp,py,go,rs) + IDE( n=nvim(LazyVim), e=emacs, h=helix, v=vscode, z=zed )
+# naming convention: website( cf=codeforces /lt=leetcode ) + language(cs,c,cpp,py,go,rs) + IDE( n=nvimtest, e=emacs, h=helix, v=vscode )
 # core: cps <website> <language> <ide> ; wrappers generated below
 cps_help() {
     cat <<'EOF'
@@ -251,15 +245,14 @@ LANGUAGES
   rs   rust
 
 IDES
-  n   nvim (LazyVim)
+  n   nvimtest
   e   emacs
   h   helix
   v   vscode
-  z   zed
 
 EXAMPLES
   cfcsh       # codeforces + csharp + helix
-  ltpyn       # leetcode + python + nvim (journal)
+  ltpyn       # leetcode + python + nvimtest
   cfgoe       # codeforces + go + emacs
   cps --help  # show this help
 EOF
@@ -303,7 +296,7 @@ cps() {
     touch "$dir/input.txt" "$dir/output.txt"
 
     case "$ide" in
-        n) NVIM_APPNAME=LazyVim nvim --cmd "cd $dir" -c "lua require('competition').open('$dir','$mainfile')" ;;
+        n) nvimtest --cmd "cd $dir" -c "lua require('competition').open('$dir','$mainfile')" ;;
         e)
             if timeout 2 emacsclient -e t &>/dev/null; then
                 emacsclient -c -n --eval "(unless (fboundp 'dt/cp-open) (load-file \"$HOME/dotfiles/dt-cp-open.el\")) (dt/cp-open \"$dir\" \"$mainfile\")"
@@ -313,20 +306,29 @@ cps() {
             ;;
         h) helix -w "$dir" "$dir/$mainfile" ;;
         v) code "$dir" ;;
-        z) zed -n "$dir" & ;;
         *) echo "unknown ide: $ide" >&2; return 1 ;;
     esac
 }
 
 for __site in cf lt; do
     for __lang in cs c cpp py go rs; do
-        for __ide in n e h v z; do
+        for __ide in n e h v; do
             eval "${__site}${__lang}${__ide}() { cps $__site $__lang $__ide; }"
         done
     done
 done
 unset __site __lang __ide
 
-# ── fzf integration ────────────────────────────────────────────────────────
+# helpers
+path() { echo -e "${PATH//:/\\n}"; }
+pubip() { curl -s ifconfig.me; echo; }
+ports() { ss -tulanp; }
+up() {
+    local d=""
+    for i in $(seq 1 "${1:-1}"); do d="../$d"; done
+    cd "$d"
+}
+
+
 # fzf setup (must load after fzf-based functions)
 eval "$(fzf --bash)"

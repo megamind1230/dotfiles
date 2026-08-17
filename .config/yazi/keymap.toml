@@ -1,0 +1,10 @@
+[[mgr.prepend_keymap]]
+on = [ "g", "o" ]
+run = 'shell "thunar $PWD" --orphan'
+desc = "Open current directory in Thunar"
+
+
+[[mgr.prepend_keymap]]
+on = [ "g", "k" ]
+run = 'shell "kitty $PWD" --orphan'
+desc = "Open current directory in Kitty"

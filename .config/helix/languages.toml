@@ -1,0 +1,39 @@
+[[language]]
+name = "c"
+language-servers = ["clangd"]
+formatter = { command = "clang-format" }
+
+[[language]]
+name = "cpp"
+language-servers = ["clangd"]
+formatter = { command = "clang-format" }
+
+[[language]]
+name = "c-sharp"
+scope = "source.cs"
+file-types = ["cs"]
+roots = [".sln", ".csproj"]
+language-servers = ["csharp-ls"]
+[language-server.csharp-ls]
+command = "/home/dt/.dotnet/tools/csharp-ls"
+
+[[language]]
+name = "python"
+language-servers = ["pyright"]
+formatter = { command = "ruff", args = ["format", "--line-length", "88", "-"] }
+
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer"]
+formatter = { command = "rustfmt" }
+
+[[language]]
+name = "go"
+language-servers = ["gopls"]
+formatter = { command = "gofmt" }
+
+[language-server.pyright]
+command = "/home/dt/.npm-global/bin/pyright-langserver"
+args = ["--stdio"]
+config = {}
+

@@ -1,11 +1,14 @@
+# ── prompt ─────────────────────────────────────────────────────────────────
 # bash prompt theming
 PS1='\e[3;33m(\@)\e[m\u:\h\e[1;36m[\w]\e[m$ '
 
+# ── keybindings ────────────────────────────────────────────────────────────
 # vi keybindings in bash
 # set -o vi
 # bind -m vi-command 'Control-l: clear-screen'
 # bind -m vi-insert 'Control-l: clear-screen'
 
+# ── startup word ───────────────────────────────────────────────────────────
 # Show random word on terminal startup
 if [[ -f /mnt/hdd/words.txt ]] && [[ -s /mnt/hdd/words.txt ]]; then
   echo -e "\e[35m$(shuf -n 1 /mnt/hdd/words.txt)\e[0m"
@@ -14,4 +17,3 @@ fi
 
 ## things to autostart with bash
 # cal; date
-

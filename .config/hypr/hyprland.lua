@@ -18,6 +18,7 @@ hl.monitor({ output = "VGA-1", mode = "1280x1024@60", position = "1366x0", scale
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("TERMINAL", terminal)
+hl.env("PATH", os.getenv("PATH") .. ":/home/dt/.local/bin")
 
 -------------------------
 -- AUTOSTART (on boot) --
@@ -145,6 +146,8 @@ hl.bind(mainMod .. " + W",       hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + R",       hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + Z",       hl.dsp.exec_cmd("emacsclient -c"))
+-- hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd("zed"))
+hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd("zed"))
 hl.bind(mainMod .. " + O",       hl.dsp.exec_cmd("obsidian"))
 hl.bind(mainMod .. " + T",       hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + B",       hl.dsp.exec_cmd("/home/dt/scripts/rofi-searchweb"))
@@ -176,6 +179,10 @@ end
 -- hl.bind(mainMod .. " + SHIFT + A",    hl.dsp.window.move({ workspace = "special:magic" }))
 hl.bind(mainMod .. " + A",            hl.dsp.workspace.toggle_special("pad"))
 hl.bind(mainMod .. " + SHIFT + A",    hl.dsp.window.move({ workspace = "special:pad" }))
+
+hl.bind(mainMod .. " + slash",            hl.dsp.workspace.toggle_special("extra"))
+hl.bind(mainMod .. " + SHIFT + slash",    hl.dsp.window.move({ workspace = "special:extra" }))
+
 
 -- Move/resize windows with mouse
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
@@ -225,14 +232,18 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("/home/dt/scripts/emote"))
 -- App workspace assignments
 hl.window_rule({ match = { class = "^(firefox)$" },        workspace = "2" }) --works
 hl.window_rule({ match = { class = "^(Emacs)$" },        workspace = "special:pad" }) --works
+hl.window_rule({ match = { class = "^(mouseless-kanban)$" },        workspace = "special:pad" }) --works
 hl.window_rule({ match = { class = "^(obsidian)$" },       workspace = "9" }) --works
 hl.window_rule({ match = { class = "^(discord)$" },        workspace = "10" }) --works
+hl.window_rule({ match = { class = "^(slack)$" },        workspace = "10" }) --works
 
 hl.window_rule({ match = { class = "^(steam)$" },             workspace = "1" })
 hl.window_rule({ match = { class = "^(brave\\-browser)$" },   workspace = "2" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.okular)$" }, workspace = "4" })
+hl.window_rule({ match = { class = "^(org\\.kde\\.ksecretd)$" }, workspace = "2" })
 hl.window_rule({ match = { class = "^(gimp)$" },              workspace = "5" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.kdenlive)$" },          workspace = "5" })
+hl.window_rule({ match = { class = "^(lmms\\.real)$" },          workspace = "5" })
 hl.window_rule({ match = { class = "^(ZenNotes)$" },          workspace = "9" })
 hl.window_rule({ match = { class = "^(org\\.telegram\\.desktop)$" }, workspace = "10" })
 
