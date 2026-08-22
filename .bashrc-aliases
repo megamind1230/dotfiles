@@ -7,8 +7,7 @@ my_active_nvim="nvim"
 #terminal="alacritty"
 #TERMINAL="alacritty"
 hdd="/mnt/hdd"
-obsidot="/mnt/hdd/obsi/vault_bank/my-dotfiles"
-fastnote="$obsidot/fast-note.md"
+fastnote="/mnt/hdd/obsi/vault_bank/fast-note.org"
 
 # ── safety ─────────────────────────────────────────────────────────────────
 # safer remove and cut/move
@@ -133,6 +132,7 @@ alias sb='source ~/.bashrc'
 ## faster
 # alias date="date +'%d-%m-%Y %a @ %r'"
 alias e='emacsclient -c -a ""'
+alias ed='emacs --daemon'
 alias y='yazi'
 alias oc='opencode'
 
@@ -158,26 +158,6 @@ alias wp="cd /mnt/hdd/Favorites; \ls | shuf | head -n 1" # name me a random bg i
 alias now='mkdir "$(date +'%I%p-%Y-%m-%d')"'
 
 # ── tmux ───────────────────────────────────────────────────────────────────
-# alias bakacmux='tmux new -s baka -d && tmux rename-window -t baka:0 "main" && tmux new-window -t baka:1 -d && tmux new-window -t baka:2 -d && tmux new-window -t baka:3 -d && tmux attach -t baka'
-alias bakam='
-tmux new-session -s baka -d;                   # Create session detached
-tmux rename-window -t baka:0 "extra";           # Rename window 0
-# tmux send-keys -t baka:0 "nvim" C-m;           # Run command in window 0
-
-tmux new-window -t baka:1 -n "doc";         # Create window 1 with name
-tmux send-keys -t baka:1 "cd '/mnt/hdd/doc' ; nvim ." C-m;      # Run command in window 1
-
-tmux new-window -t baka:2 -n "grep";         # Create window 2 with name
-tmux send-keys -t baka:2 "cd /mnt/hdd/st/obsi/vault_bank; nvim ." C-m; # Run command in window 2
-
-tmux new-window -t baka:3 -n "notes";           # Create window 3 with name
-tmux send-keys -t baka:3 "cd ~/Desktop; nvim new.md" C-m; # Run command in window 3
-
-tmux new-window -t baka:4 -n "quotes";           # Create window 4 with name
-tmux send-keys -t baka:4 "nvim /mnt/hdd/st/obsi/vault_bank/my-quotes.txt" C-m; # Run command in window 4
-
-tmux attach -t baka;                           # Attach to session
-'
 alias bakat='tmux a -t baka'
 
 # ── system ─────────────────────────────────────────────────────────────────

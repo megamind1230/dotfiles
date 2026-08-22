@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Search the web via rofi
 
 query=$(printf "" | rofi -dmenu -p "Web Search:")
 [ -z "$query" ] && exit 0

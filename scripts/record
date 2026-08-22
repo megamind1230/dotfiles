@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Screen + mic recorder, merges into mp4
 # record — interactive launcher that runs screenrecord (or screenrecord-audio)
 #           + mic simultaneously, then merges them into a single .mp4.
 #

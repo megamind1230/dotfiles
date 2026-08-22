@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Record mic with noise reduction and compression
 # mic-capture — record mic with noise reduction, EQ, compression, and limiting.
 # Depends on: ffmpeg, pactl (PulseAudio or PipeWire-pulse), p_lib_session.sh
 # Compatible with: X11 and Wayland (PulseAudio / PipeWire-pulse backend)

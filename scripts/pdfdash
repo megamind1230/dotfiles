@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Interactive PDF dashboard (split/merge/preview)
 
 # dependencies: pdftk poppler-utils fzf ghostscript
 

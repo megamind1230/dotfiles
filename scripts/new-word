@@ -1,4 +1,5 @@
 #!/bin/bash
+# @desc Add new vocabulary word via rofi
   # Script was with with fuzzel 
   # but now with rofi again
 # word=$(echo "" | fuzzel --dmenu --prompt="Add word: ")

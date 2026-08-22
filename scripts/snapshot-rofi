@@ -1,4 +1,5 @@
 #!/bin/bash
+# @desc Screenshot launcher via rofi
 
 BASE="$HOME/org"
 FILE="$BASE/inbox.org"

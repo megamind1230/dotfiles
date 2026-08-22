@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# @desc create a simple 52 random words test from anki .txt files
+set -euo pipefail
+
+file=$(fd -e txt | fzf) || exit 0
+shuf -n 52 -- "$file" | awk '{print NR". "$0}' > answers.txt

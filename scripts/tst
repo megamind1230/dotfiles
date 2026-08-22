@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Test/scratch script
 
 if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
     echo "hi wayland"

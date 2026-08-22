@@ -1,4 +1,5 @@
 #!/bin/bash
+# @desc Toggle keyboard language layout
 
 current=$(setxkbmap -query | grep layout | awk '{print $2}')
 

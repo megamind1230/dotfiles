@@ -3,6 +3,9 @@ left = ["Workspaces"]
 center = ["Tempo"]
 right = [["Tray", "Privacy", "Settings"]]
 
+# [workspaces]
+# workspace_names = ["1 ", "2 ", "3", "4 ", "5 ", "6", "7", "8", "9 ", "10 "]
+
 [tempo]
 clock_format = "%I:%M %p"
 
@@ -10,4 +13,5 @@ clock_format = "%I:%M %p"
 audio_indicator_format = "IconAndPercentage"
 
 [appearance]
+font_name = "JetBrainsMono Nerd Font"
 workspace_colors = [{ base = "#e0af68", text = "#1a1b26" }]

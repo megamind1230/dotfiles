@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Calculator launcher via rofi
   # requires bc to be installed
   # expr=$(printf "" | fuzzel --dmenu --prompt "calc: ")
 expr=$(printf "" | rofi -dmenu -p "calc: ")

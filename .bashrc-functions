@@ -1,14 +1,19 @@
 # ── package management ─────────────────────────────────────────────────────
 # pacman & aur helpers Install
+# @desc Install packages via pacman
 inst()  { sudo pacman -S "$@"; }
+# @desc Install packages via paru (AUR)
 pinst() { paru -S "$@"; }
 # yinst() { yay -S "$@"; }
 # Search (bottom-up)
+# @desc Search packages via pacman
 search()  { pacman -Ss "$@" | tac; }
+# @desc Search packages via paru (AUR)
 psearch() { paru -Ss "$@" | tac; }
 # ysearch() { yay -Ss "$@" | tac; }
 
 # ── archives ───────────────────────────────────────────────────────────────
+# @desc Extract archive by file type
 ex() {
     if [ -z "$1" ]; then
         echo "Usage: ex <archive-file>"
@@ -32,6 +37,7 @@ ex() {
     esac
 }
 
+# @desc Create archive from file or folder
 compress() {
     if [ -z "$1" ] || [ -z "$2" ]; then
         echo "Usage: compress <output-file> <file-or-folder>"
@@ -52,6 +58,7 @@ compress() {
 # nvim config switcher (journal = default nvim, LazyVim = coding config)
 alias nvimlazy="NVIM_APPNAME=LazyVim nvim"
 alias lz="NVIM_APPNAME=LazyVim nvim"
+# @desc Fzf neovim config switcher
 nvims() {
   local items=("nvim" "LazyVim" )
   local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
@@ -65,19 +72,25 @@ nvims() {
 }
 bind -x '"\eN":nvims'
 
+# @desc Fzf pick and run scripts from ~/scripts/
 scriptsRun() {
     local script
     script=$(
         for f in ~/scripts/*; do
-            [[ -f "$f" ]] && [[ -x "$f" ]] && basename "$f"
-        done | fzf
+            [[ -f "$f" ]] && [[ -x "$f" ]] || continue
+            local name desc
+            name=$(basename "$f")
+            desc=$(head -5 "$f" | grep -m1 '^# @desc ' | sed 's/^# @desc //')
+            printf "%-25s  %s\n" "$name" "${desc:-no description}"
+        done | fzf --prompt="Script> " --height=~60% --layout=reverse --border
     )
     [[ -z "$script" ]] && return
-    ~/scripts/"$script"
+    ~/scripts/"${script%%  *}"
 }
 bind -x '"\eS":scriptsRun'
 
 # ── fuzzy search ───────────────────────────────────────────────────────────
+# @desc Ripgrep+fzf content search, open in nvim
 rgnv() {
     dir="$PWD"
     result=$(rg --hidden --line-number --no-heading --color=always -F "" "$dir" \
@@ -93,6 +106,7 @@ rgnv() {
     nvim +"$line" "$file"
 }
 
+# @desc Same as rgnv but pick directory first
 rgnvp() {
     # dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
     dir=$(fd -HI -t d . "$HOME" 2>/dev/null | fzf --prompt="Select directory: ")
@@ -110,6 +124,7 @@ rgnvp() {
     nvim +"$line" "$file"
 }
 
+# @desc Fzf pick directory, open in yazi
 fzy() {
     # dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
     dir=$(fd -HI -t d . "$HOME" 2>/dev/null | fzf --prompt="Select directory: ")
@@ -117,6 +132,7 @@ fzy() {
     yazi "$dir"
 }
 
+# @desc Ripgrep+fzf search, open parent dir in yazi
 rgy() {
     # dir=$(find "$HOME" -type d 2>/dev/null | fzf --prompt="Select directory: ")
     dir=$(fd -HI -t d . "$HOME" 2>/dev/null | fzf --prompt="Select directory: ")
@@ -134,10 +150,35 @@ rgy() {
     yazi "$parent"
 }
 
+# ── tmux ───────────────────────────────────────────────────────────────────
+# @desc Create "baka" tmux session with 5 windows
+bakam() {
+    tmux new-session -s baka -d
+    tmux rename-window -t baka:0 "extra"
+
+    tmux new-window -t baka:1 -n "doc"
+    tmux send-keys -t baka:1 "cd '/mnt/hdd/doc' ; nvim ." C-m
+
+    tmux new-window -t baka:2 -n "grep"
+    tmux send-keys -t baka:2 "cd /mnt/hdd/st/obsi/vault_bank; nvim ." C-m
+
+    tmux new-window -t baka:3 -n "notes"
+    tmux send-keys -t baka:3 "cd ~/Desktop; nvim new.md" C-m
+
+    tmux new-window -t baka:4 -n "quotes"
+    tmux send-keys -t baka:4 "nvim /mnt/hdd/st/obsi/vault_bank/my-quotes.txt" C-m
+
+    tmux attach -t baka
+}
+
 # ── utilities ──────────────────────────────────────────────────────────────
+# @desc Display PATH entries, one per line
 path() { echo -e "${PATH//:/\\n}"; }
+# @desc Show public IP address
 pubip() { curl -s ifconfig.me; echo; }
+# @desc List listening ports
 ports() { ss -tulanp; }
+# @desc Go up N directories
 up() {
     local d=""
     for i in $(seq 1 "${1:-1}"); do d="../$d"; done
@@ -146,6 +187,7 @@ up() {
 
 # quotes="/mnt/e/st/obsi/vault_bank/my-quotes.txt"
 quotes="/mnt/hdd/st/obsi/vault_bank/my-quotes.txt"
+# @desc Print random line from quotes file
 function print_random_quote() {
     if [ -f "$quotes" ]; then
         # Get the number of lines in the file
@@ -161,6 +203,7 @@ function print_random_quote() {
 # uncommnet to Call the function when bash starts
 # print_random_quote
 
+# @desc Interactive random file organizer
 crondo() { # rondo with copy
     while true; do
         cd /mnt/hdd/hcore
@@ -227,6 +270,7 @@ crondo() { # rondo with copy
 
 # naming convention: website( cf=codeforces /lt=leetcode ) + language(cs,c,cpp,py,go,rs) + IDE( n=nvim(LazyVim), e=emacs, h=helix, v=vscode, z=zed )
 # core: cps <website> <language> <ide> ; wrappers generated below
+# @desc Show competitive programming setup help
 cps_help() {
     cat <<'EOF'
 cps - competitive programming setup
@@ -264,6 +308,8 @@ EXAMPLES
   cps --help  # show this help
 EOF
 }
+
+# @desc Competitive programming project setup
 cps() {
     if [[ "$1" == "--help" || "$1" == "-h" ]]; then
         cps_help
@@ -285,9 +331,12 @@ cps() {
 
     local id site_name
     if [[ "$website" == "cf" ]]; then
-        local url
+        local url path
         read -p "Problem link: " url
-        id=$(echo "$url" | grep -oE '[0-9]+/[A-Z0-9]+' | tr '/' '-')
+        url="${url%%\?*}"                 # strip query string (?locale=...)
+        url="${url%/}"                    # strip trailing slash
+        path="${url#*codeforces.com/}"    # keep full path after domain
+        id="${path//\//-}"                # slashes -> dashes
         site_name="codeforces-$id-$website$lang$ide"
     else
         read -p "Problem number: " id
@@ -300,7 +349,6 @@ cps() {
     if [[ "$lang" == "cs" ]]; then
         mv "$dir/template.csproj" "$dir/$site_name.csproj"
     fi
-    touch "$dir/input.txt" "$dir/output.txt"
 
     case "$ide" in
         n) NVIM_APPNAME=LazyVim nvim --cmd "cd $dir" -c "lua require('competition').open('$dir','$mainfile')" ;;
@@ -326,6 +374,124 @@ for __site in cf lt; do
     done
 done
 unset __site __lang __ide
+
+# ── fd & rg fuzzy tools ────────────────────────────────────────────────────
+# @desc Ripgrep+fzf, copy file:line to clipboard
+rgcopy() {
+    local result
+    result=$(rg --hidden --line-number --no-heading --color=always -F "${1:-}" "$PWD" \
+        | fzf --ansi --phony \
+              --bind "change:reload:rg --hidden --line-number --no-heading --color=always -F {q} \"$PWD\" || true" \
+              --delimiter : \
+              --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+              --preview-window=right:60%)
+    [[ -z "$result" ]] && return
+    local file line
+    file=$(echo "$result" | cut -d: -f1)
+    line=$(echo "$result" | cut -d: -f2)
+    echo -n "${file}:${line}" | wl-copy
+    echo "Copied: ${file}:${line}"
+}
+
+# @desc Fzf interactive file move
+fmv() {
+    local src dest
+    src=$(fd -HI -t f --exclude .git --preview 'bat --style=numbers --color=always {}' \
+        | fzf --prompt="Move> " --height=~60% --layout=reverse --border)
+    [[ -z "$src" ]] && return
+    dest=$(fd -HI -t d --exclude .git \
+        | fzf --prompt="To> " --height=~60% --layout=reverse --border)
+    [[ -z "$dest" ]] && return
+    mv -- "$src" "$dest"
+    echo "Moved: $src → $dest"
+}
+
+# @desc Fzf vault document browser → nvim
+fdoc() {
+    local vault="/mnt/hdd/obsi/vault_bank"
+    local result
+    result=$(fd -HI -t f -e md -e org -e txt \
+        --exclude attachments --exclude .obsidian --exclude .git \
+        "$vault" \
+        | fzf --prompt="Doc> " --height=~70% --layout=reverse --border \
+              --preview 'bat --style=numbers --color=always --line-range=:200 {}' \
+              --preview-window=right:60%)
+    [[ -z "$result" ]] && return
+    nvim "$result"
+}
+
+# @desc Fuzzy cd, skips junk dirs
+fcd() {
+    local dir
+    dir=$(fd -HI -t d \
+        --exclude .git --exclude node_modules --exclude __pycache__ \
+        --exclude .venv --exclude venv --exclude .cache --exclude .npm \
+        --exclude .local --exclude target --exclude dist --exclude build \
+        --exclude .Trash \
+        | fzf --prompt="Cd> " --height=~60% --layout=reverse --border)
+    [[ -z "$dir" ]] && return
+    cd "$dir"
+}
+
+# @desc Fuzzy cd to git projects only
+fcdg() {
+    local dir
+    dir=$(fd -HI -t d . /home/dt --exclude .git --exclude .cache --exclude .Trash \
+        --exclude .local --exclude .cargo --exclude .config \
+        | while read -r d; do
+            [[ -d "$d/.git" ]] && echo "$d"
+        done \
+        | fzf --prompt="Git Cd> " --height=~60% --layout=reverse --border)
+    [[ -z "$dir" ]] && return
+    cd "$dir"
+}
+
+# ── fuzzy alias picker ──────────────────────────────────────────────────────
+# @desc Fzf picker for bash aliases
+fuzzy_alias() {
+    local selection name cmd
+    selection=$(alias -p \
+        | sed 's/^alias //' \
+        | awk -F= '{
+            name=$1
+            cmd=substr($0, index($0,"=")+1)
+            gsub(/^["'\'' ]+|["'\'' ]+$/, "", cmd)
+            printf "%-15s  %s\n", name, cmd
+        }' \
+        | fzf --prompt="Alias> " --height=~60% --layout=reverse --border)
+    [[ -z "$selection" ]] && return
+    name="${selection%%  *}"
+    cmd=$(alias "$name" 2>/dev/null | sed "s/^alias ${name}=//; s/^['\"]//; s/['\"]$//")
+    READLINE_LINE="$name"
+    READLINE_POINT=${#name}
+}
+bind -x '"\eA":fuzzy_alias'
+
+# ── fuzzy function picker ──────────────────────────────────────────────────
+# @desc Fzf picker for bash functions
+fuzzy_function() {
+    local file selection name
+    file=~/.bashrc-functions
+    selection=$(
+        awk '
+            /^# @desc / { desc = substr($0, 8); next }
+            /^[a-zA-Z_][a-zA-Z0-9_]*\(\)/ || /^[a-zA-Z_][a-zA-Z0-9_]* *\(\)/ || /^function [a-zA-Z_][a-zA-Z0-9_]*\(\)/ {
+                name = $0
+                sub(/function /, "", name)
+                sub(/\().*/, "", name)
+                gsub(/[ \t]/, "", name)
+                if (desc != "") printf "%-20s  %s\n", name, desc
+                desc = ""
+            }
+            { if (!/^#/ && !/^[ \t]*$/) desc = "" }
+        ' "$file" \
+        | fzf --prompt="Fn> " --height=~60% --layout=reverse --border)
+    [[ -z "$selection" ]] && return
+    name="${selection%%  *}"
+    READLINE_LINE="$name"
+    READLINE_POINT=${#name}
+}
+bind -x '"\eF":fuzzy_function'
 
 # ── fzf integration ────────────────────────────────────────────────────────
 # fzf setup (must load after fzf-based functions)

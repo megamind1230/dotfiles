@@ -1,4 +1,5 @@
 #!/bin/sh
+# @desc Shared functions for recording scripts
 
 detect_display_server() {
   if [ -n "$WAYLAND_DISPLAY" ]; then

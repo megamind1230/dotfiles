@@ -22,6 +22,7 @@ A collection of bash scripts for daily use on Linux (Wayland + X11). All scripts
 | =mic=               | Recording  | Mic capture with noise reduction + EQ + compression  | ffmpeg, pactl                     |
 | =p_lib_session.sh=  | Library    | Shared helpers (compositor, audio, clipboard)        | --                                |
 | =tst=               | Debug      | Prints display server type (wayland/x11)             | --                                |
+| =rand52=            | Vocab      | Picks tsv via fzf, saves 52 shuffled numbered lines  | fzf, shuf, awk                    |
 
 ** Recording Architecture
 
@@ -747,3 +748,38 @@ All functions get input via pick_pdf, so the fzf preview applies everywhere.
 - set -euo pipefail is enabled -- any command failure exits immediately
 - The script runs in the current directory and finds PDFs recursively (fd -HI -t f -e pdf)
 - Encrypted PDFs use 128-bit AES (pdftk default)
+
+
+* rand52
+
+Random quiz generator for tsv vocab files. Pick a file with fzf, get 52 shuffled lines written to answer.txt in the current directory, numbered "1.", "2.", ...
+
+** Usage
+
+: rand52
+
+Run it from the directory containing your vocab files. An fzf window opens -- type to fuzzy-find the file, press Enter to select.
+
+** Output
+
+Creates ./answer.txt with 52 random full lines from the picked file:
+
+: 1. reader 	 قارئ
+: 2. fly 	 يطير
+: ...
+: 52. brain 	 دماغ
+
+Lines keep their original tsv columns (word TAB translation). Numbering is assigned after shuffling.
+
+** Dependencies
+
+- fzf -- file picker
+- shuf -- shuffle + take 52 lines (coreutils)
+- awk -- number the lines
+
+** Notes
+
+- Press Esc / Ctrl+C at the fzf prompt to abort without writing answer.txt
+- If the file has fewer than 52 lines you get all of them, shuffled
+- Full lines are kept -- if you want only the first column, pipe through cut -f1 first
+- set -euo pipefail enabled -- any failure exits immediately

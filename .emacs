@@ -163,7 +163,7 @@
 ;; --------------------
 ;; search selected in browser, chatgpt
 ;; --------------------
-(defun search-selected-text ()
+(defun dt/query-duckduckgo ()
   (interactive)
   (if (use-region-p)
       (browse-url
@@ -173,7 +173,7 @@
                  (region-beginning)
                  (region-end)))))
     (message "No region selected")))
-(defun ask-chatgpt-browser ()
+(defun dt/query-chatgpt ()
   "Send selected text to ChatGPT in browser."
   (interactive)
   (if (use-region-p)
@@ -184,8 +184,8 @@
          (concat "https://chat.openai.com/?q="
                  (url-hexify-string query))))
     (message "No region selected")))
-(global-set-key (kbd "C-c s") #'search-selected-text)
-(global-set-key (kbd "C-c g") #'ask-chatgpt-browser)
+(global-set-key (kbd "C-c q d") #'dt/query-duckduckgo) ;; query duckduckgo
+(global-set-key (kbd "C-c q c") #'dt/query-chatgpt) ;; query chatgpt
 
 ;; --------------------
 ;; gcc AND gc to comment/uncomment
@@ -380,9 +380,14 @@
   "Insert a the table core"
   (interactive)
   ;; (beginning-of-line)
-  (insert "|||"))
+  (insert
+"| a | b |
+|---+---|
+|   |   |
+"))
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "C-c i t") #'insert-org-table))
+
 ; ;; --------------------
 ; ;; csharp mode conf
 ; ;; --------------------
@@ -637,10 +642,10 @@
 (require 'avy)
 ;; Jump to a character in the visible window { best }
 (global-set-key (kbd "C-:") 'avy-goto-char)
-;; Jump to a word beginning
-(global-set-key (kbd "C-'") 'avy-goto-word-1)
 ;; Jump to a line
-(global-set-key (kbd "M-g f") 'avy-goto-line)
+(global-set-key (kbd "M-g a l") 'avy-goto-line)
+;; ;; Jump to a word beginning ;;i don't think i need this
+;; (global-set-key (kbd "C-'") 'avy-goto-word-1)
 
 
 ;; RSS feed reader {elfeed}
@@ -1063,14 +1068,31 @@
   ;; `denote-rename-buffer-format' for how to modify this.
   (denote-rename-buffer-mode 1))
 
-(defun dt/cd-denote ()
-  "Change the current buffer's `default-directory' to the denote directory."
+(defun dt/cd-personal-vault ()
+  "Change the current buffer's `default-directory' to the vault directory."
   (interactive)
   (setq default-directory
         (expand-file-name (or (bound-and-true-p denote-directory)
                               "/mnt/hdd/obsi/vault_bank/")))
   (message "pwd: %s" default-directory))
-(global-set-key (kbd "C-c d c") #'dt/cd-denote)
+(global-set-key (kbd "C-c g v") #'dt/cd-personal-vault) ;; go to vault
+
+
+(defun dt/cd-home ()
+  "Change the current buffer's `default-directory' to the home directory."
+  (interactive)
+  (setq default-directory "~/")
+  (message "pwd: %s" default-directory))
+(global-set-key (kbd "C-c g h") #'dt/cd-home) ;; go to vault
+
+(defun dt/cd-org-agenda ()
+  "Go to the Org directory."
+  (interactive)
+  (setq default-directory
+        (file-name-as-directory
+         (expand-file-name org-directory)))
+  (message "pwd: %s" default-directory))
+(global-set-key (kbd "C-c g o") #'dt/cd-org-agenda) ;; go to org-agenda files
 
 
 ;; --------------------
@@ -1090,27 +1112,53 @@
 ;; (golden-ratio-mode 1)
 
 ;; CF project layout
+(defvar dt/cp-term-buffer nil
+  "Persistent vterm buffer used by `dt/cp-term-toggle'.")
+
+(defvar-local dt/cp-term-dir nil
+  "Directory this vterm was last cd'd into.")
+
+(defun dt/cp-dir ()
+  "Return the CP problem directory of the current buffer, or nil."
+  (when-let* ((file (buffer-file-name))
+              (dir (file-name-directory file))
+              (root (expand-file-name "~/cp/")))
+    (when (and (string-prefix-p root dir)
+               (not (string= root dir)))
+      (directory-file-name dir))))
+
+(defun dt/cp-term-toggle ()
+  "Toggle a plain vterm window rooted at the current CP problem dir."
+  (interactive)
+  (let ((win (and (buffer-live-p dt/cp-term-buffer)
+                  (get-buffer-window dt/cp-term-buffer t))))
+    (if win
+        ;; close: guard against sole/minibuffer window
+        (condition-case nil
+            (delete-window win)
+          (error (switch-to-buffer (other-buffer))))
+      ;; open: dumb split right of the current window
+      (let ((dir (or (dt/cp-dir) default-directory)))
+        (split-window-right)
+        (other-window 1)
+        (if (buffer-live-p dt/cp-term-buffer)
+            (switch-to-buffer dt/cp-term-buffer)
+          (vterm "*dt-cp-term*")
+          (setq dt/cp-term-buffer (current-buffer)))
+        ;; cd only when the project changed, so a running run.sh is not interrupted
+        (unless (equal dt/cp-term-dir dir)
+          (vterm-send-string (concat "cd " dir))
+          (vterm-send-return)
+          (setq dt/cp-term-dir dir))))))
+
 (defun dt/cp-open (dir &optional mainfile)
-  "Open CP problem layout: main file left, input/output/vterm right."
+  "Open CP problem: main file only; C-` toggles a vterm for run.sh."
   (interactive (list (read-directory-name "CP dir: " "~/cp/")
                      (read-string "Main file: " "Program.cs")))
-  (let* ((main-file (or mainfile "Program.cs"))
-         (proj-main (expand-file-name main-file dir))
-         (input-txt (expand-file-name "input.txt" dir))
-         (output-txt (expand-file-name "output.txt" dir)))
-    (delete-other-windows)
-    (find-file proj-main)
-    (split-window-right)
-    (other-window 1)
-    (find-file input-txt)
-    (split-window-below)
-    (other-window 1)
-    (find-file output-txt)
-    (split-window-below)
-    (other-window 1)
-    (vterm)
-    (other-window -3)
-    (balance-windows)))
+  (delete-other-windows)
+  (find-file (expand-file-name (or mainfile "Program.cs") dir)))
+
+(global-set-key (kbd "C-`") #'dt/cp-term-toggle)
 
 ;; search vault bank (by name) (vault picker)
 (defun dt/vault-picker ()
@@ -1314,8 +1362,6 @@ Examples:
               (kbd "C-u")
               #'dt/scroll-up-centered))
 
-
-
 ;; embark (custom vertical/horizontal splits)
 (defun dt/find-file-split-below (file)
   "Open FILE in a horizontal split below."
@@ -1327,7 +1373,6 @@ Examples:
   ; (interactive)
   (select-window (split-window-right))
   (find-file file))
-
 (with-eval-after-load 'embark
   (define-key embark-file-map (kbd "2")
     #'dt/find-file-split-below)
@@ -1336,3 +1381,24 @@ Examples:
 
 ;; auto select/focus newly opened help buffers
 (setq help-window-select t)
+
+;; ;; multi-cursors (disabled — replaced by evil-mc)
+;; (global-unset-key (kbd "M-<down-mouse-1>"))
+;; (use-package multiple-cursors
+;;   :ensure t
+;;   :bind
+;;   (("C->"   . mc/mark-next-like-this)
+;;    ("C-<"   . mc/mark-previous-like-this)
+;;    ("C-c m m a" . mc/mark-all-like-this)
+;;    ("C-c m e l" . mc/edit-lines)))
+;; (with-eval-after-load 'evil
+;;   (global-set-key (kbd "M-<down-mouse-1>") #'mc/add-cursor-on-click))
+
+;; --------------------
+;; evil-mc (multi-cursors, evil-native)
+;; --------------------
+(use-package evil-mc
+  :ensure t
+  :after evil
+  :config
+  (global-evil-mc-mode 1))

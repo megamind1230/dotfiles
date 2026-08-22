@@ -25,6 +25,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.python" }, -- python → pyright + ruff
     { import = "lazyvim.plugins.extras.dap.core" },   -- dap: nvim-dap config + ui (required by easy-dotnet)
     -- import/override with your plugins
+    require("config.colorscheme"),
     { import = "plugins" },
   },
   defaults = {

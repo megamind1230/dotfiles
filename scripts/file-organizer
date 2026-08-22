@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Organize files by type into subdirs
 set -euo pipefail
 
 # ──────────────────────────────────────────────

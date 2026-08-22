@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @desc Screen recorder with audio
 set -e
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 . "$script_dir/p_lib_session.sh"

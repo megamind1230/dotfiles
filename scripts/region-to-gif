@@ -1,4 +1,5 @@
 #!/bin/sh
+# @desc Capture screen region and convert to gif
 
 case "${XDG_SESSION_TYPE:-x11}" in
   wayland) wlgif -o ~/Pictures/out.gif -d 0 ;;

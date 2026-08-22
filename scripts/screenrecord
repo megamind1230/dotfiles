@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
+# @desc Screen recorder (video only)
 set -e
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-. "$script_dir/p_lib_session.sh"
 
 DIR="$(get_recordings_dir)"
 mkdir -p "$DIR"

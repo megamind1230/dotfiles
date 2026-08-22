@@ -3,7 +3,8 @@
 local terminal = "kitty"
 local fileManager = "thunar"
 local menu = "rofi -show drun"
-local browser = "brave"
+-- local browser = "brave"
+local browser = "helium-browser"
 local mainMod = "SUPER"
 
 --------------------
@@ -174,6 +175,8 @@ for i = 1, 10 do
     hl.bind(mainMod .. " + SHIFT + " .. n,    hl.dsp.window.move({ workspace = i }))
 end
 
+
+
 -- Special workspace (scratchpad)
 -- hl.bind(mainMod .. " + A",            hl.dsp.workspace.toggle_special("magic"))
 -- hl.bind(mainMod .. " + SHIFT + A",    hl.dsp.window.move({ workspace = "special:magic" }))
@@ -230,23 +233,22 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("/home/dt/scripts/emote"))
 -- WINDOW RULES --
 ------------------------------
 -- App workspace assignments
-hl.window_rule({ match = { class = "^(firefox)$" },        workspace = "2" }) --works
-hl.window_rule({ match = { class = "^(Emacs)$" },        workspace = "special:pad" }) --works
-hl.window_rule({ match = { class = "^(mouseless-kanban)$" },        workspace = "special:pad" }) --works
-hl.window_rule({ match = { class = "^(obsidian)$" },       workspace = "9" }) --works
-hl.window_rule({ match = { class = "^(discord)$" },        workspace = "10" }) --works
-hl.window_rule({ match = { class = "^(slack)$" },        workspace = "10" }) --works
-
 hl.window_rule({ match = { class = "^(steam)$" },             workspace = "1" })
-hl.window_rule({ match = { class = "^(brave\\-browser)$" },   workspace = "2" })
-hl.window_rule({ match = { class = "^(org\\.kde\\.okular)$" }, workspace = "4" })
+hl.window_rule({ match = { class = "^(firefox)$" },        workspace = "2" }) 
+hl.window_rule({ match = { class = "^(helium)$" },   workspace = "2" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.ksecretd)$" }, workspace = "2" })
+hl.window_rule({ match = { class = "^(org\\.kde\\.okular)$" }, workspace = "4" })
 hl.window_rule({ match = { class = "^(gimp)$" },              workspace = "5" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.kdenlive)$" },          workspace = "5" })
 hl.window_rule({ match = { class = "^(lmms\\.real)$" },          workspace = "5" })
+hl.window_rule({ match = { class = "^(com\\.github\\.maoschanz\\.drawing)$" },          workspace = "5" })
+hl.window_rule({ match = { class = "^(obsidian)$" },       workspace = "9" }) 
 hl.window_rule({ match = { class = "^(ZenNotes)$" },          workspace = "9" })
+hl.window_rule({ match = { class = "^(discord)$" },        workspace = "10" }) 
+hl.window_rule({ match = { class = "^(slack)$" },        workspace = "10" }) 
 hl.window_rule({ match = { class = "^(org\\.telegram\\.desktop)$" }, workspace = "10" })
-
+hl.window_rule({ match = { class = "^(Emacs)$" },        workspace = "special:pad" }) 
+hl.window_rule({ match = { class = "^(mouseless-kanban)$" },        workspace = "special:pad" }) 
 
 -- mouseless-kanban
 hl.bind(mainMod .. " + ALT + K",     hl.dsp.exec_cmd("/home/dt/dev/mouseless-kanban/scripts/run.sh"))
