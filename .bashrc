@@ -46,7 +46,7 @@ export MANPAGER='nvim +Man!'
 export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
 export EDITOR='nvim'
 export VISUAL='nvim'
-export BROWSER='brave-browser'
+export BROWSER='helium-browser'
 export TERMINAL=/usr/bin/kitty
 # for lunar vim
 export PATH=/home/dt/.local/bin:$PATH

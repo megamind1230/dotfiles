@@ -1,0 +1,523 @@
+#+TITLE: dt's dotfiles
+
+Personal configuration for an Arch Linux setup: dual Wayland (Hyprland) / X11 (i3) sessions, bash, Emacs, two Neovim configs, Helix, Zed, Kitty, mpv, plus a toolbox of shell scripts.
+
+The repo mirrors =$HOME=: files get symlinked into place (=~/.bashrc=, =~/.emacs=, =~/.config/*=). =~/scripts= is a symlink to this repo's =scripts/= directory and is added to =$PATH=, so every script here runs as a bare command from anywhere.
+
+* Features at a glance
+
+1. *Dual display-server support* — everything works on both Wayland (Hyprland, Sway) and X11 (i3); scripts auto-detect the session type
+2. *hyprland:* =SUPER+Enter= → kitty, =SUPER+Q= → close window
+3. *hyprland:* =SUPER+W / E / R= → helium browser / thunar / rofi app launcher
+4. *hyprland:* =SUPER+Z= emacsclient, =SUPER+C= zed, =SUPER+O= obsidian, =SUPER+T= Telegram, =SUPER+B= web-search rofi
+5. *hyprland:* =SUPER+ALT+= / =SUPER+ALT+-= → volume up/down (pactl), =SUPER+M= mute
+6. *hyprland:* XF86 media keys → volume ±5% / mute / mic-mute (wpctl), brightness ±5% (brightnessctl), play/pause/next/prev (playerctl)
+7. *hyprland:* =SUPER+ALT+O / I= → extra brightness up/down
+8. *hyprland:* =SUPER+H/J/K/L= vim-style focus, =SUPER+SHIFT+H/J/K/L= move window
+9. *hyprland:* =SUPER+1..0= → workspace, =SUPER+SHIFT+n= → send window there
+10. *hyprland:* =SUPER+A= / =SUPER+SHIFT+A= → toggle / move-to scratchpad workspace =pad=; =SUPER+/= / =SUPER+SHIFT+/= → same for =extra=
+11. *hyprland:* =SUPER+Tab= / =SUPER+SHIFT+Tab= → next / previous workspace
+12. *hyprland:* =SUPER+F= fullscreen, =SUPER+LMB= drag-move, =SUPER+RMB= drag-resize, =SUPER+SHIFT+V= toggle float
+13. *hyprland:* =SUPER+S= screenshot region → file, =SUPER+SHIFT+S= region → clipboard (hyprshot)
+14. *hyprland:* =SUPER+V= clipboard history (cliphist + rofi; text & images)
+15. *hyprland:* =SUPER+.= emoji/kaomoji picker, =SUPER+`= window switcher, =SUPER+ALT+K= mouseless-kanban
+16. *hyprland:* =SUPER+SHIFT+R= → random wallpaper from =/mnt/hdd/Favorites=
+17. *keyboard:* =Win+Space= toggles US ↔ Arabic layout (via keyd option on Hyprland, via =toglang= script on i3)
+18. *hyprland:* 3-finger horizontal swipe switches workspace
+19. *hyprland:* per-app workspace rules — steam→1, browsers→2, okular→4, gimp/kdenlive/lmms/drawing→5, obsidian/ZenNotes→9, discord/slack/telegram→10, Emacs + mouseless-kanban→special pad, Emacs at 80% opacity
+20. *bar (ashell):* workspaces | clock | tray/privacy/settings, JetBrainsMono Nerd Font (waybar + i3status configs kept as alternates)
+21. *i3:* same muscle-memory binds (SUPER+Enter/W/E/R/O/Z/F/Q, hjkl focus/move, workspaces 1..0, Tab cycle)
+22. *i3:* =SUPER+SHIFT+A= shrink-focused-window-to-90%-and-center then send to scratchpad, =SUPER+A= recall centered, =SUPER+CTRL+n= extract scratchpad window onto workspace n
+23. *i3:* autostart stack — autotiling, picom (glx), clipmenud, dunst, random xwallpaper, touchpad natural-scroll tuning, xss-lock+i3lock, nm-applet
+24. *shell:* prompt shows =(time)= user:host [cwd] in color; prints a random vocabulary word on every new shell (from =/mnt/hdd/words.txt=)
+25. *shell:* man pages open inside nvim (=MANPAGER='nvim +Man!'=)
+26. *shell:* safety aliases — =rm -i --preserve-root=, =mv -i=, =mkdir -p=, =mkcd=
+27. *shell:* cd shortcuts — =cdc= config, =cdh= home, =cdl= Downloads, =cdcore=, =cdobsi=/=ob= obsidian core, typo fixers =cd../=cd.=
+28. *shell:* instant config editing — =nb nba nbf nbp nv nhyper nkit ni3 nw…= open the right dotfile in your active nvim
+29. *shell:* =ls= is long/all/time-sorted/human/dirs-first; =h= fuzzy-searches history and pastes the picked command back
+30. *shell:* fzf tools — =nf= / =fnv= pick file → nvim; =fzm= directory manager (tree preview, multi-open, Del deletes, Ctrl-D/Ctrl-F flip dir/file mode); =fkill= pick processes to kill
+31. *shell:* readline keys — =Alt+N= neovim-config chooser (default vs LazyVim), =Alt+S= script runner, =Alt+A= alias picker, =Alt+F= function picker
+32. *shell:* stock fzf integration — =Ctrl-T= insert file, =Ctrl-R= history search, =Alt-C= fuzzy cd
+33. *shell:* ripgrep family — =rgnv=/=rgnvp= live-regrep with bat preview → opens match at line in nvim; =rgcopy= copies =file:line= to clipboard; =rgy= opens match dir in yazi; =fdoc= vault notes browser; =fcd= / =fcdg= fuzzy cd (all dirs / git repos); =fzy= yazi dir opener; =fmv= interactive move
+34. *shell:* =ex <archive>= extracts tar/tar.gz/bz2/xz/zip/rar/7z/gz by extension; =compress= builds them back
+35. *shell:* pacman/AUR helpers — =inst= / =pinst= / =search= / =psearch=
+36. *shell:* =bakam= spawns a 4-window tmux workspace (doc/grep/notes/quotes), =bakat= reattaches later
+37. *shell:* system aliases — =nap= suspend, =die= poweroff, =dtlog= kill own session, =camfix= reload v4l2loopback webcam, =td= termdown, =mmon/mmoff= capslock→mouse remap service
+38. *shell:* =backup-dotfiles= dated repo snapshot to HDD; =now= timestamped folder; =wp= random wallpaper name; =note= fast-note; =e/ed= emacsclient GUI + daemon
+39. *competitive programming:* =cps <site> <lang> <ide>= scaffolds =~/cp/<site>-<id>-<lang><ide>/= from a template with input/output files and opens the right editor — 60 generated wrappers like =cfcsc=, =cfpyh=, =ltpyn=, =ltrsgz= (sites: cf=Codeforces, lt=LeetCode; langs: cs/c/cpp/py/go/rs; ides: n=LazyVim, e=Emacs, h=Helix, v=VSCode, z=Zed)
+40. *recording:* =record= → screen (optionally + desktop audio) and mic recorded simultaneously into one merged mp4; standalone =screenrecord= / =screenrecord-audio= / =mic= variants; all compositor-aware (wl-screenrec / wf-recorder / ffmpeg); =mic= runs a 9-stage broadcast chain (high/lowpass, FFT noise reduction, adeclick, deesser, voice EQ, compand, gain, limiter)
+41. *recording:* =p_lib_session.sh= shared library abstracting display server, compositor, monitor/window geometry, audio sink & source, clipboard
+42. *pdfdash:* interactive fzf PDF dashboard — extract pages or images, merge, compress (4 ghostscript presets), encrypt/decrypt, rotate
+43. *file-organizer:* sort a folder by category / keyword-or-regex patterns / named container; dry-run preview, reverse (undo) mode, CLI flags or interactive menu
+44. *emote:* 3,380-entry emoji/kaomoji rofi picker → clipboard (Wayland + X11)
+45. *calc:* rofi calculator (bc -l) → result copied to clipboard + notification
+46. *rofi-searchweb:* one query, pick engine (google / duckduckgo / brave / github / youtube / arch wiki / man.archlinux)
+47. *snapshot-rofi:* org-mode inbox quick-capture from rofi; harvests a clipboard image into the note if one is present
+48. *new-word:* add word+meaning via rofi dialogs into the vocabulary file (feeds feature #24)
+49. *rand52:* pick a vocab .txt → writes a shuffled numbered 52-word quiz to =answers.txt=
+50. *timer:* termdown countdown + sound, appends task/start/end/duration to a time log
+51. *toglang:* US ↔ Arabic keyboard toggle (X11)
+52. *region-to-gif:* selected-region GIF recording (wlgif on Wayland / byzanz on X11)
+53. *cwp:* wallpaper picker with chafa previews — applies via hyprpaper to every Wayland monitor or xwallpaper on X11
+54. *tst:* tiny probe printing which display server you're on
+55. *emacs:* Evil mode + evil-surround + =jk= escape + which-key
+56. *emacs:* =SPC= leader key — =SPC b*= buffers, =SPC f*= files, =SPC p*= projects, =SPC w*= windows, =SPC q q= quit, =SPC h*= help
+57. *emacs:* Org GTD — TODO/NEXT/DONE + WAITING/CANCELLED workflow, =C-c a= agenda (custom "GTD" view), =C-c c= capture to inbox, refiling, done items hidden from agenda
+58. *emacs:* Obsidian-vault integration — =C-c v p/n/g/r/l= find / new note / grep / random note / wiki-link inside =vault_bank=; =C-c g v/h/o= jump to vault/home/org dirs
+59. *emacs:* Denote notes — =C-c d n/r/l/b/d/g= create/rename/link/backlinks/dired/grep
+60. *emacs:* pandoc converters — md-to-org, org-to-md, html-to-org run in-place on the region (strip CUSTOM_ID drawers / pandoc attributes)
+61. *emacs:* completion stack — Corfu auto-popup + Cape file-path completions + Yasnippet; =C-n/C-p/C-y= in insert state, =M-/= complete at point
+62. *emacs:* Eglot LSP for C# — =C-c e f/r/a= format / rename / code actions
+63. *emacs:* vertico + marginalia + orderless minibuffer; consult (=C-c r= ripgrep); embark (=C-.= act, =C-;= dwim, custom split-open actions 2/3)
+64. *emacs:* evil-mc multi-cursors, avy jumps (=C-:= char, =M-g a l= line), drag-stuff (=M-h/j/k/l= move things), centered scrolling (=C-d/C-u= recenter)
+65. *emacs:* CP helper — =C-`= toggles a vterm rooted in the current =~/cp/= problem dir; pairs with the cps system's emacs IDE
+66. *emacs:* elfeed RSS reader (3 YouTube feeds), org → PDF export via xelatex, markdown cycling like org, checkbox/table inserters (=C-c i c/t=)
+67. *emacs:* web lookups — =C-c q d= search region on DuckDuckGo, =C-c q c= send region to ChatGPT; =gc=/=gcc= comment operator; =C-c k= custom keybinding lister
+68. *emacs:* perspective workspaces (=C-c w s/k/r=), global text zoom (=C-= / C--=), recentf (=C-x C-r=), fast buffer toggle (=C-x C-a=), Esc acts as cancel
+69. *nvim:* modular config on Neovim's builtin vim.pack plugin manager — one file per feature in =lua/plugins/=, each toggleable with a single line
+70. *nvim:* leader is Space — =jk= esc, =leader+x= kill buffer, netrw via =leader+pv= / =-= / == =, oil.nvim via =leader+e=
+71. *nvim:* =H/L= jump to line start/end, =J/K= move selected lines in visual mode, =<leader>p= paste-without-yank, =<leader>d= delete-without-yank, =YK= yank a K&R-style function body
+72. *nvim:* =C-l= cycles Emacs-style recenter: middle → top → bottom
+73. *nvim:* floaty (local plugin) floating terminal — =leader+tt=, =CTRL+`=, =F12=; terminal exits via double-Esc or Ctrl-o
+74. *nvim:* plugins — orgmode (+org-roam, org-bullets), telescope (+orgmode extension), easy-dotnet C# tooling w/ LSP, twilight dimming, lualine statusline, oil.nvim editor-in-buffer, mini.nvim suite (jump2d/ai/move/pairs/surround), colorizer
+75. *nvim:* treesitter starts on every buffer; parsers auto-update after pack updates; retrobox colorscheme (habamax fallback)
+76. *lazyvim:* second full Neovim config, switchable live from the shell — =Alt+N= / =nvims= menu, or =lz= alias (=NVIM_APPNAME=LazyVim nvim=)
+77. *lazyvim:* adds floaty terminal (same binds as default nvim), competition.lua CP layout, wildcharm colorscheme, rust-analyzer preinstalled via mason
+78. *helix:* custom peachpuff theme; =SPACE+r= save-all → run bash run.sh → reload; =SPACE+l= competitive-programming layout (input.txt right, output.txt below); =jk= normal mode
+79. *helix:* LSP/formatters wired per language — clangd + clang-format (c/c++), csharp-ls, pyright + ruff format (line 88), rustfmt, gofmt
+80. *zed:* vim mode, mouse-wheel zoom, regex + smartcase search by default, format-on-save, Go uses hard tabs
+81. *yazi:* =g o= opens current dir in thunar, =g k= opens it in kitty
+82. *kdenlive:* "bread" shortcut preset — timeline targets on plain =1..9= (video), =Alt+1..9= (audio), =Ctrl+1..9= (target switch), =Alt+Shift+A= activate all targets, etc.
+83. *kitty:* gold block cursor (no blink), no window decorations, no audio bell, 80% background opacity, =Shift+Alt+j/k= scroll by line
+84. *mpv:* volume 110%, playback speed 1.2x, borderless, centered window, infinite loop
+
+* Shell files
+** =.profile=
+*Why:* sourced by the display manager / login shell — sets the environment before Hyprland or i3 starts. Non-interactive counterpart of =.bashrc=.
+
+Sections:
+- *Exports* — =EDITOR=/=VISUAL==nvim=, =BROWSER=brave=, =TERMINAL=kitty=
+- *PATH* — prepends =~/.opencode/bin=, =~/.local/bin=, =~/.config/emacs/bin= (doom), =~/.emacs.d/bin=, =~/scripts/= (the symlink into this repo), =~/.dotnet/tools=; appends =/opt/nvim-linux-x86_64/bin=
+
+Note: uses =BROWSER=brave= while =.bashrc= uses =brave-browser= — a small inconsistency between the two files.
+
+** =.bashrc=
+*Why:* main bash config for interactive shells. It's an *orchestrator*: baseline settings, then sources the three extension files in order.
+
+Sections:
+1. *Interactivity guard* — returns immediately for non-interactive shells
+2. *History* — no dupes / ignores space-prefixed commands, append mode, HISTSIZE=1000
+3. *Shell options* — checkwinsize (globstar/lesspipe commented out)
+4. *Environment* — opencode on PATH; =MANPAGER='nvim +Man!'= and =MANWIDTH=999= (man pages inside nvim); EDITOR/VISUAL/BROWSER(=brave-browser=)/TERMINAL; PATH prepends (.local/bin, emacs bins, scripts/, dotnet tools); recording defaults =SCREENREC_AUDIO_SINK= / =SCREENREC_AUDIO_SOURCE= consumed by the mic/screenrecording scripts
+5. *Prompt* — color PS1 =user@host:cwd$=, sets xterm window title
+6. *ls colors* — dircolors eval + basic =ls --color= alias (overridden later by -aliases)
+7. *Completion* — sources bash-completion
+8. *Source chain* — =.bashrc-personal= → =.bashrc-aliases= → =.bashrc-functions=; this order defines precedence
+
+** =.bashrc-personal=
+*Why:* the "survives a skel overwrite" personal layer, sourced first.
+
+Sections:
+1. *Prompt* — custom PS1: italic-yellow =(10:42 AM)= time, then =user:host=, then bold-cyan =[cwd]=, then =$=
+2. *Commented-out vi-mode experiment* — =set -o vi= + Ctrl-L clear binds (disabled)
+3. *Startup word* — if =/mnt/hdd/words.txt= exists and is non-empty, prints one random line (magenta) at each new shell — pairs with the =new-word= script and =nw= edit alias
+
+** =.bashrc-aliases=
+*Why:* the full alias collection, sourced second. Organized by theme.
+
+| Group | Contents |
+|---+---|
+| Variables | =my_active_nvim= indirection so every =n*= editor alias points at one configurable editor; =fastnote= path |
+| Safety | =rm -i --preserve-root=, =mv -i=, =mkdir -p=, function =mkcd <dir>= |
+| Git | =gst= → git status |
+| cd | =cd..=, =cd.= → .. ; =cd~= home; =cdc= ~/.config; =cdh= ~; =cdl= Downloads; =cdcore= /mnt/hdd/hcore; =cdobsi= / =ob= obsidian vault core |
+| Listings | =ls -larth --group-directories-first --color=; per-config-dir listers =lsalac nvls lsqtile lshyper lskit…= |
+| Edit configs | open dotfiles in =$my_active_nvim=: =nb nba nbf nbp= (bashrc family), =nv= init.lua, =nhyper= hyprland.lua, =nkit= kitty, =ni3= i3, =nxmo= xmonad (legacy), =nw= words.txt |
+| fzf | =nf= fzf→nvim; =fnv= fd+fzf find-any-file→nvim; =fzm= multi-select directory manager with tree preview (Enter open, Del rm -ri, Ctrl-V preview toggle, Ctrl-D dirs, Ctrl-F files, Ctrl-A/X select all/none); =fkill= multi-kill processes |
+| Launch & misc | =sb= reload bashrc; =e= emacsclient GUI (+daemon autostart); =ed= emacs daemon; =y= yazi; =oc= opencode; =anki=; =note= fast-note.org; =file= thunar here; =lv= lunarvim (legacy); =backup-dotfiles= dated HDD snapshot; =h= history\|fzf paste-back; =wp= random wallpaper name; =now= timestamped dir |
+| Tmux | =bakat= attach to session =baka= |
+| System | =dtlog= sudo pkill own user (logout); =nap= suspend; =die= shutdown now; =camfix= reload v4l2loopback; =td= termdown passthrough; =mmon/mmoff= start/stop capslock-mouse remap service |
+
+** =.bashrc-functions=
+*Why:* functions, fzf integrations, readline keybindings, and the competitive-programming generator. Sourced last. Uses =# @desc= comments above definitions — parsed by the Alt+F picker as documentation.
+
+Sections:
+
+*** Package management
+- =inst <pkgs>= sudo pacman -S; =pinst= paru (AUR); =search= / =psearch= query results printed bottom-up (=tac=)
+
+*** Archives
+- =ex <archive>= extracts by extension (tar, tar.gz/tgz, tar.bz2, tar.xz, zip, rar, 7z, gz, bz2)
+- =compress <out> <src>= creates tar/tar.gz/tar.bz2/tar.xz/zip/7z by output extension
+
+*** Neovim config switcher
+- aliases =nvimlazy= / =lz= run =NVIM_APPNAME=LazyVim nvim=
+- =nvims= fzf menu choosing =nvim= (default config) vs =LazyVim=, then execs with the right =NVIM_APPNAME=
+- *Alt+N* readline bind invokes =nvims= directly from the prompt
+
+*** Script runner
+- =scriptsRun= lists executable files in =~/scripts= with their first =# @desc= line, fzf-picks one, runs it
+- *Alt+S* readline bind invokes it from the prompt
+
+*** Fuzzy search family
+Shared recipe: live ripgrep re-run as you type (fzf =change:reload=), bat preview highlighting the match, right pane.
+- =rgnv= content search in cwd → Enter opens =nvim +<line> <file>=
+- =rgnvp= same but pick the search directory first via fd
+- =rgy= pick directory, search it, open the matched file's parent in yazi
+- =rgcopy= copies =file:line= of the pick to the clipboard (wl-copy/xclip)
+- =fzy= fuzzy-pick a dir under $HOME → yazi
+- =fmv= pick source file, pick destination dir, move
+- =fdoc= browse md/org/txt notes in =/mnt/hdd/obsi/vault_bank= with preview → nvim
+- =fcd= fuzzy cd over all directories (junk excluded)
+- =fcdg= fuzzy cd restricted to git repositories under =/home/dt=
+
+*** Tmux workspace
+- =bakam= creates detached session =baka=: window 0 =extra=, 1 =doc= (nvim /mnt/hdd/doc), 2 =grep= (vault), 3 =notes= (Desktop/new.md), 4 =quotes= (my-quotes.txt) — then attaches. Reattach anytime with =bakat=
+
+*** Utilities
+- =path= $PATH one per line; =pubip= public IP; =ports= listening ports; =up [N]= go up N dirs
+- =print_random_quote= random line from my-quotes.txt
+- =crondo= interactive random-file organizer loop for =/mnt/hdd/hcore= (y → Downloads, else → hcoreExtend, q quits)
+
+*** Competitive programming (cps system)
+Naming convention: =<website><language><ide>=.
+- =cps cf|lt <lang> n|e|h|v|z= prompts for problem link/number, derives an id, clones the language template from =~/cp/templates/= into =~/cp/<site>-<id>-.../=, renames csproj for C#, opens the IDE:
+  - =n= LazyVim + competition.lua layout; =e= emacsclient (loads =dt-cp-open.el=); =h= helix; =v= code; =z= zed
+- Generates *60 wrapper functions* covering the full matrix (cfcsc…ltrsgz) so each combination is one command
+- Note: =cps e= references =$HOME/dotfiles/dt-cp-open.el=, which is not present in this repo
+
+*** Readline fuzzy pickers
+- *Alt+A* =fuzzy_alias= → insert picked alias name at prompt
+- *Alt+F* =fuzzy_function= → parses =# @desc= blocks, inserts picked function name at prompt
+
+*** fzf integration
+- final line evals =fzf --bash= → stock Ctrl-T / Ctrl-R / Alt-C bindings (loaded after the custom functions on purpose)
+* Wayland desktop (Hyprland)
+
+** =.config/hypr/hyprland.lua=
+*Why:* the active Hyprland compositor config, written with Hyprland's *Lua scripting API* (=hl.*= calls) instead of the classic conf format — loops and variables come free (e.g. workspace binds generated in a =for= loop). Replaces =old_hyprland.conf=.
+
+Sections:
+1. *Variables* — terminal=kitty, fileManager=thunar, menu=rofi drun, browser=helium-browser, mainMod=SUPER
+2. *Monitors* — eDP-1 1366x768@60 at 0x0 (laptop panel), VGA-1 1280x1024@60 to its right
+3. *Environment vars* — cursor size 24, TERMINAL, PATH += ~/.local/bin
+4. *Autostart (hyprland.start)* — ashell bar, dunst notifications, wallpaper.sh, kwalletd6, cliphist watchers for text+image paste events, emacs --daemon, gwenview set as default image handler
+5. *Look & feel* — 1px inner gaps / 0 outer, 1px borders with cyan→green 45° gradient on focus; dwindle layout; shadows on; subtle blur; rounding off
+6. *Animations* — fully defined bezier curves/animations table but master switch disabled
+7. *Misc* — no hyprland logo/splash
+8. *Input* — layout =us, ara= with =grp:win_space_toggle= (Win+Space toggles), follow-mouse, natural touchpad scroll
+9. *Gestures* — 3-finger horizontal swipe = workspace switch
+
+Keybinds:
+
+| Keys | Action |
+|---+---|
+| SUPER+Enter | kitty |
+| SUPER+Q | close window |
+| SUPER+W / E / R | helium browser / thunar / rofi drun |
+| SUPER+Z / C / O / T / B | emacsclient / zed / obsidian / Telegram / rofi-searchweb |
+| SUPER+SHIFT+R | pick random image from Favorites → hyprpaper |
+| SUPER+SHIFT+V | toggle floating |
+| SUPER+H/J/K/L | focus left/down/up/right |
+| SUPER+SHIFT+H/J/K/L | move window left/down/up/right |
+| SUPER+1..0 | workspace n (loop-generated) |
+| SUPER+SHIFT+n | move window to workspace n |
+| SUPER+A / SHIFT+A | toggle special ws "pad" / move window there |
+| SUPER+/ / SHIFT+/ | same pair for special ws "extra" |
+| SUPER+Tab / SHIFT+Tab | next / previous workspace |
+| SUPER+F | fullscreen |
+| SUPER+mouse L/R | drag-move / drag-resize |
+| XF86AudioRaise/Lower/Mute/MicMute | wpctl volume ±5% (repeatable) / mute / mic mute |
+| XF86MonBrightnessUp/Down | brightnessctl ±5% (repeatable) |
+| XF86AudioNext/Pause/Play/Prev | playerctl transport |
+| SUPER+ALT+= / - | pactl sink volume ±5% |
+| SUPER+M | pactl sink mute toggle |
+| SUPER+ALT+O / I | brightnessctl ±5% |
+| SUPER+S / SHIFT+S | hyprshot region → file / → clipboard only |
+| SUPER+V | cliphist history via rofi → wl-copy |
+| SUPER+. | emote picker script |
+| SUPER+` | rofi window switcher |
+| SUPER+ALT+K | launch mouseless-kanban |
+
+Window rules: app→workspace assignments (steam 1, firefox/helium/ksecretd 2, okular 4, gimp/kdenlive/lmms/drawing 5, obsidian/ZenNotes 9, discord/slack/telegram 10); class Emacs and mouseless-kanban open in special:pad; Emacs gets 0.80 opacity.
+
+** =.config/hypr/hyprpaper.conf=
+*Why:* hyprpaper's wallpaper pointer. Just one =wallpaper {}= block (monitor=all, fit=cover). Its =path= is regenerated by wallpaper.sh at every boot.
+
+** =.config/hypr/wallpaper.sh=
+*Why:* random-wallpaper daemon started by autostart. Picks a random jpg/png from =/mnt/hdd/Favorites=, rewrites hyprpaper.conf with it, kills and re-execs hyprpaper.
+
+** =.config/hypr/ws-click.sh=
+*Why:* intended helper so clicking a workspace number in a status bar focuses it (logs args, dispatches). Currently vestigial — nothing references it, and its =hyprctl dispatch= line passes Lua-style text rather than a native command.
+
+** =.config/hypr/old_hyprland.conf=
+*Why:* previous-generation config in classic conf syntax, kept for reference. Same look/input/keybind philosophy plus things not ported yet: keyd service toggles (SUPER+F12 stop / SUPER+SHIFT+F12 restart — spacebar-as-middle-click remap), master layout block, fuzzel/wofi history comments. Do not edit; edit hyprland.lua instead.
+
+* Bars
+
+** =.config/ashell/config.toml=
+*Why:* config for ashell, the Wayland status bar currently launched by Hyprland.
+Sections: =[modules]= left=Workspaces, center=Tempo(clock), right=[Tray, Privacy, Settings]; =[tempo]= 12-hour clock format; =[settings]= audio icon+percentage; =[appearance]= JetBrainsMono Nerd Font, amber workspace color (#e0af68).
+
+** =.config/waybar/config= + =style.css=
+*Why:* alternate Wayland bar config (was used before ashell).
+Config: modules-left = hyprland workspaces (click-to-activate, numbered 1..10), center = clock (%I:%M %p with full tooltip), right = tray, network, pulseaudio, battery (good/warning/critical states at 95/30/15%, charging icons, alt format shows time).
+CSS: translucent black bar, 11px font, gray inactive workspace buttons / white active, battery turns orange below warning, red at critical, green while charging.
+
+* X11 desktop (i3)
+
+** =.config/i3/config=
+*Why:* full i3 window manager config for X11 sessions — mirrors the Hyprland muscle memory.
+
+Sections:
+1. *Monitors* — xrandr: eDP-1 primary 1366x768, VGA-1 1280x1024 at 1366x0, everything else off
+2. *Variables/font* — mod=Super, alt, term=kitty, browser=brave, fm=thunar; DejaVu Sans Mono 8
+3. *Autostart* — dex XDG autostart; dunst; random xwallpaper; clipmenud; autotiling (dynamic split direction); picom glx compositor; touchpad natural scroll + scroll distance 30 via xinput; xss-lock+i3lock before suspend; nm-applet
+4. *Audio/brightness binds* — XF86 keys ±10% via pactl + i3status refresh; extra custom: Super+Alt+= / − volume ±5%, Super+m mute, Super+Alt+i/o brightness ∓5%
+5. *Mouse behavior* — floating_modifier $mod; tiling_drag modifier titlebar
+6. *App assignments* — Steam→1, Brave/firefox→2, okular→4, Gimp/kdenlive→5, obsidian/Zennotes→9, discord/TelegramDesktop→10
+7. *Workspace binds* — Super+n switch, Super+Shift+n move-and-follow, Super+Ctrl+n extract scratchpad window onto ws n (works around i3 scratchpad quirks)
+8. *Bar* — top position, i3status backend
+9. *App launches* — Super+r rofi drun, w brave, o obsidian, z emacs, Return kitty, e thunar, f fullscreen, Shift+c reload, Shift+r restart, q kill
+10. *Focus/move* — Super+h/j/k/l (+arrows), Super+Shift+h/j/k/l (+arrows)
+11. *Extras* — Super+Space toglang (layout toggle), Super+v clipmenu, Tab cycle workspaces, no borders + 2px/1px gaps, Super+s scrot region→file, Super+Shift+s region→clipboard, Super+Shift+a shrink-to-90%-centered→scratchpad, Super+a show centered, Super+. emote picker
+
+** =.config/i3/scratchpad_move.sh=
+*Why:* helper used by scratchpad extraction. Uses jq on the i3 tree to detect if the focused window is a scratchpad one; if so it shows it, moves it to =$1= and tiles it, otherwise moves+tiles normally.
+
+** =.config/i3status/config=
+*Why:* statusline data for i3bar.
+Sections: general colors (green/yellow/red, 5s interval, pipe separator); order = time, battery, volume (wireless/ethernet blocks defined but commented out of the order); formats — battery =status %percentage %remaining=, volume =♪: %volume=, clock =%I:%M=.
+
+* Terminals & media
+
+** =.config/kitty/kitty.conf=
+*Why:* GPU terminal settings. Gold (#FFD700) block cursor that never blinks; hidden window decorations; no close confirmation; font_size 9; audio bell off; Shift+Alt+j/k scroll line down/up; background_opacity 0.8.
+
+** =.config/mpv/mpv.conf=
+*Why:* video player defaults. Volume 110, speed 1.2, centered geometry (50%:50%), no border, loop playlist forever, force-window.
+* Editors
+
+** =.emacs=
+*Why:* vanilla-Emacs init (~1400 lines) turned into a Vim-flavored, org-centric writing/GTD and C# competitive-programming environment. Uses plain =use-package= + MELPA (no framework).
+
+Sections, in file order:
+
+| # | Section | What it does |
+|---+---+---|
+| 1 | MELPA | adds melpa/melpa-stable/gnu archives, auto-refresh |
+| 2 | UI | no tool/menu/scroll bars; global line numbers; visual line wrap; hl-line; save-place; no blink; symlinks followed silently |
+| 3 | XDG hygiene | backups/auto-save/bookmarks/recentf/savehist/custom-file redirected to =~/.cache/emacs= and =~/.local/state/emacs=; no lockfiles |
+| 4 | QoL keys | =C-x k= kills current buffer; spaces-over-tabs; Esc = cancel; =C-x C-a= toggle last buffer |
+| 5 | Evil | evil-mode, evil-surround, which-key, visible-bell, evil-escape "jk" (300ms) |
+| 6 | Web queries | =C-c q d= DuckDuckGo region, =C-c q c= ChatGPT region |
+| 7 | Commenting | =gc= operator over motions (=gcap= etc.), =gcc= line comment |
+| 8 | Startup | Ubuntu Mono font, scratch starts in org-mode, splash off |
+| 9 | Org GTD | org dir on the vault (=vault_bank/core/my-org-agenda=); TODO/NEXT/DONE + WAITING/CANCELLED; =C-c c= capture to 0-inbox.org; =C-c a= agenda; custom GTD command =g= (agenda + NEXT + WAITING); refile to any agenda file ≤3 levels; DONE items skipped everywhere; evil keys gx/TAB/backtab; =C-c i= create org-id |
+| 10 | Theme | leuven-dark |
+| 11 | recentf | =C-x C-r= recent files (50) |
+| 12 | UTF-8 | language env + default coding system |
+| 13 | drag-stuff | =M-h/j/k/l= move region/line left/down/up/right globally |
+| 14 | Perspective | named workspaces: =C-c w s= switch, =k= kill, =r= rename |
+| 15 | Org inserters | =C-c i c= unchecked checkbox, =C-c i t= 2x2 table skeleton |
+| 16 | Markdown | markdown-mode; org-like TAB cycling + gx follow; ox-md export enabled |
+| 17 | vterm / csharp-mode | terminal emulator + C# major mode on .cs files |
+| 18 | Eglot LSP | builtin LSP client for C# (auto-shutdown, xref extension); =C-c e f/r/a= format/rename/actions |
+| 19 | Corfu + Cape | inline completion popup (auto after 0.1s, prefix 1, cycle, preview-insert); C-n/C-p/C-y in insert state; advice guarantees cape-file is always offered; terminal support via corfu-terminal; =M-/= completion-at-point |
+| 20 | Yasnippet | snippets in csharp/prog modes + yasnippet-snippets collection; custom capf backend exposes snippet keys to Corfu |
+| 21 | avy | =C-:= jump to visible char, =M-g a l= jump to line |
+| 22 | elfeed | RSS with 3 YouTube channel feeds; helpers mark-all-read/unread |
+| 23 | Toggle evil | =C-c e= flips evil-mode |
+| 24 | Org → PDF | xelatex compiler, two-pass export, junk (.tex/.log/.aux) cleaned up |
+| 25 | Zoom | =C-= / C--= frame text scale (default-text-scale) |
+| 26 | Pandoc converters | =dt/md-to-org=, =dt/org-to-md=, =dt/html-to-org= — replace region in-place via pandoc, stripping CUSTOM_ID drawers / ={.class}= attributes |
+| 27 | Replace advice | query-replace / replace-string act on whole buffer when no region active |
+| 28 | SPC leader | hand-rolled leader map in normal+visual states — see table below |
+| 29 | list-bindings | =C-c k= walks all keymaps into a sorted *keybindings* buffer ("you could just use C-h b .. but i created mine") |
+| 30 | Vertico stack | vertico minibuffer UI, marginalia annotations, orderless fuzzy completion styles |
+| 31 | Denote | notes in vault_bank; =C-c d n/r/l/b/d/g= new/rename/link/backlinks/dired/grep; buffers renamed "[D] title"; dired integration |
+| 32 | Dir jumps | =C-c g v= vault, =C-c g h= home, =C-c g o= org-agenda dir |
+| 33 | Server | server-start with stale-socket recovery (pairs with =e=/=ed= aliases) |
+| 34 | CP mode | =C-`= toggles persistent vterm split cd'd into current =~/cp/= problem dir (only re-cd's when project changes so run.sh survives); =dt/cp-open= opens main file full-frame |
+| 35 | Vault tools | =C-c v p= consult-find, =C-c v n= new note, =C-c v g= grep vault, =C-c v r= random note, =C-c v l= insert =[[]]= wiki link (md buffers) |
+| 36 | Editing defaults | global-auto-revert; electric-pair; tab-width 2; trailing whitespace shown + stripped on save |
+| 37 | Markdown evil | TAB cycle, backtab, gx follow |
+| 38 | Consult/Embark | =C-c r= consult-ripgrep; embark =C-.= act / =C-;= dwim / =C-h B= bindings; custom embark file actions 2 = split-below, 3 = split-right; help window auto-focus |
+| 39 | Scrolling | =C-d/C-u= half-page scroll keeping cursor centered |
+| 40 | evil-mc | multi-cursors global |
+
+Leader key map (=SPC=):
+
+| Keys | Action |
+|---+---|
+| SPC b b / d / i / s | switch buffer (consult) / kill / ibuffer / save |
+| SPC f s / c f d | save / consult-fd find file |
+| SPC p s p / f f / f d / f g / s b / d / e / k b | project: switch / find-file / find-dir / grep / buffer / dired / eshell at root / kill buffers |
+| SPC w h/j/k/l | move between windows |
+| SPC w d / o / s / v | delete / only-this / split below / split right |
+| SPC q q | save & quit |
+| SPC h f/k/v | describe function/key/variable |
+
+** =.config/nvim/= (default Neovim config)
+*Why:* personal modular config built on Neovim's *builtin vim.pack* plugin manager (no lazy.nvim here). Each feature lives in its own =lua/plugins/<name>.lua= file; disable by adding/uncommenting =if true then return {} end= at its top.
+
+Files:
+
+| File | Purpose |
+|---+---|
+| =init.lua= | sets Space as leader, requires options/keymaps/colorscheme + each plugin block; autocmds: TSUpdate after treesitter pack-update, treesitter start on every buffer |
+| =lua/options.lua= | absolute numbers (rel off), 2-space indent + smartindent, ignorecase+smartcase search, termguicolors, cursorline, colorcolumn 90, wrapped lines, splits open below/right, timeoutlen 300, mouse=a, system clipboard (unnamedplus), swapfile off |
+| =lua/keymaps.lua= | see table below |
+| =lua/colorscheme.lua= | retrobox theme, habamax fallback |
+| =lua/competition.lua= | =M.open(dir, mainfile)= CP layout: main file left, output.txt vsplit-right at 40%, input.txt below it (used by cps IDE "n") |
+| =plugins/orgmode.lua= | treesitter + orgmode.nvim (agenda from ~/orgfiles), org-bullets pretty headings, org-roam zettelkasten |
+| =plugins/telescope.lua= | telescope.fzf finder + telescope-orgmode extension |
+| =plugins/dotnet.lua= | easy-dotnet.nvim — C# build/test/run + LSP wiring (debugger/testrunner autostart off) |
+| =plugins/twilight.lua= | dims code outside the current function/paragraph |
+| =plugins/lualine.lua= | statusline: mode / git branch+diff+diagnostics / filename / encoding+filetype / progress / location |
+| =plugins/oilnvim.lua= | oil.nvim buffer-as-filesystem explorer — deliberately NOT the default explorer (netrw kept); icons column, hidden files shown except .git/.., natural sort, full stock keymap set |
+| =plugins/floaty.lua= | local plugin (lives in this repo, no download): floating terminal |
+| =plugins/mini-nvim.lua= | mini.jump2d (Enter), mini.ai, mini.move, mini.pairs, mini.surround (animate module present but disabled — "gets me dizzy") |
+| =plugins/colorizer.lua= | highlights hex color codes inline |
+| =plugins/extras.lua= | commented-out archive of old settings — documentation, intentionally not required |
+
+Keymaps (default config):
+
+| Keys | Action |
+|---+---|
+| jk (insert) | Escape |
+| leader+x | delete current buffer |
+| leader+pv / - / == | netrw explorer (vertical) |
+| leader+e | oil.nvim |
+| Esc (normal) | clear search highlight |
+| H / L | start / end of displayed line |
+| J / K (visual) | move selection down / up |
+| leader+p | paste over selection without yanking |
+| leader+d | delete without yanking |
+| C-x (terminal) | exit terminal mode |
+| C-Del / C-l (insert) | delete word after cursor / char |
+| YK | yank whole function body (K&R braces) |
+| leader+nv | edit =~/.config/nvim= |
+| C-l | Emacs-style recenter cycle: center → top → bottom |
+| leader+tt / CTRL+` / F12 | toggle floaty terminal |
+| Esc Esc / C-o (terminal) | leave terminal mode |
+
+Note: =lua/plugins/no-bad-nvim.lua#= (trailing =#=) is a stray editor-backup file.
+
+** =.config/LazyVim/= (second Neovim config)
+*Why:* a full LazyVim distribution kept side-by-side under its own =NVIM_APPNAME=. Reach it three ways: =Alt+N= / =nvims= picker from bash, =nvimlazy= or =lz= alias. Used mainly for competitive programming (the cps system's "n" IDE).
+
+Customizations beyond the stock starter:
+- =init.lua= bootstraps lazy.nvim/LazyVim
+- =lua/config/colorscheme.lua= → wildcharm
+- =lua/config/keymaps.lua= → floaty terminal binds (CTRL+` , leader+tt , F12; terminal exits Esc-Esc/C-o)
+- =lua/floaty.lua= + =lua/competition.lua= → same local plugins as the default config (CP 3-pane layout)
+- =lua/plugins/lsp.lua= → mason preinstalls rust-analyzer
+- =lua/plugins/dotnet.lua= → easy-dotnet
+- =lazyvim.json= tracks LazyVim news/version state; =lazy-lock.json= pins plugin versions
+
+** =.config/helix/=
+*Why:* Helix editor config used as a competitive-programming editor (cps IDE "h").
+
+- =config.toml= — peachpuff theme; absolute line numbers; per-mode cursor shapes (bar/block/underline); *SPACE+r* = write-all → =bash run.sh= → reload-all (one-key test loop); *SPACE+l* = CP layout (:vsplit input.txt, :hsplit output.txt); =jk= normal mode
+- =languages.toml= — per-language servers/formatters: c & cpp → clangd + clang-format; c-sharp → csharp-ls (~/.dotnet/tools); python → pyright + =ruff format --line-length 88=; rust → rust-analyzer + rustfmt; go → gopls + gofmt
+- =themes/peachpuff-amber.toml= — hand-made warm amber colorscheme
+
+** =.config/zed/=
+*Why:* Zed editor settings.
+- =settings.json= — vim mode on; mouse-wheel zoom; smartcase + regex-on by default in search; tab size 4 (Go uses hard tabs); format on save; trust all worktrees; Ayu Dark / One Light themes; ui/buffer fonts 16/15
+- =keymap.json= — Alt+X toggles the command palette
+
+** =.config/yazi/keymap.toml=
+*Why:* two extra bindings for the yazi file manager: =g o= opens =$PWD= in thunar (GUI), =g k= opens it in kitty.
+* Scripts (=scripts/= — all on =$PATH= via =~/scripts= symlink)
+
+Most scripts start with a =# @desc= line; that metadata is what the Alt+S runner and Alt+F picker display.
+
+Architecture of the recording suite:
+
+#+BEGIN_SRC
+            record  (launcher: screen [+ audio] + mic → merged mp4)
+           /   |    \
+  screenrecord | screenrecord-audio     mic
+               \ |                 (9-stage ffmpeg chain)
+          p_lib_session.sh  (display/compositor/audio/clipboard abstraction)
+#+END_SRC
+
+** =p_lib_session.sh=
+*Why:* POSIX-sh library sourced by recording scripts so they work unchanged on Wayland and X11.
+Functions: =detect_display_server= (wayland/x11), =detect_compositor= (hyprland/sway/i3/…), =get_monitor_dimensions= (hyprctl/swaymsg/xdotool, fallback 1920x1080), =get_window_dimensions=, =get_recordings_dir= (=$SCREENCAST_DIR= or =~/Videos/Screencast=), =get_audio_sink_monitor= / =get_audio_source= (env override or pactl default), =copy_to_clipboard= (wl-copy / xclip / xsel).
+
+** =record=
+*Why:* one command → final mp4 with screen + microphone.
+Flow: menu (1 = screen only, 2 = screen + desktop audio) → generates temp wrapper scripts that force sub-scripts to write shared filenames → starts video recorder + =mic= in parallel → Ctrl+C stops both (INT trap forwards signals) → sanity-checks outputs → merges: mode 1 stream-copies mic track under video; mode 2 amerge-mixes desktop audio + mic 50/50 → cleans up temps, prints final path.
+
+** =screenrecord=
+*Why:* silent screen-only capture. hyprland → wl-screenrec; sway/wayland → wf-recorder; i3/x11 → ffmpeg x11grab lossless ultrafast. Caveat: does not source p_lib_session.sh itself, so standalone use depends on running through =record='s wrappers (see Notes).
+
+** =screenrecord-audio=
+*Why:* screen + *desktop* audio. Sources the library, resolves the sink monitor, then wl-screenrec --audio / wf-recorder -a / ffmpeg pulse+grab. No mic — use =record= for that.
+
+** =mic=
+*Why:* studio-grade voice recorder to AAC .m4a. Nine individually-commented filter stages: mono→stereo pan, 100Hz highpass + 16kHz lowpass, FFT noise reduction (nr=12), adeclick, deesser, firequalizer voice EQ curve, compand (downward expansion + soft-knee compression), +2dB gain, true-peak limiter at −2dB.
+
+** =pdfdash=
+*Why:* entire PDF toolkit behind one fzf menu. Deps: pdftk, poppler-utils, fzf, ghostscript.
+Menu: Extract Images (png/jpeg/tiff, all/custom pages) / Extract PDF Pages ("1-3 5 8") / Merge PDFs (multi-select) / Compress (screen/ebook/printer/prepress presets) / Encrypt (owner+optional user pw) / Decrypt / Rotate (90cw/ccw/180). Every op opens an fzf PDF picker previewing path, size, page count and first lines of text. Known bugs tracked in =scripts/bugs.org= (e.g. Ctrl+D at password prompt exits due to =set -e=).
+
+** =file-organizer=
+*Why:* sort a messy folder. Category map for imgs/docs/aud/vid/archives/installers (+others). Interactive menu (1 container by index list, 2 keyword patterns w/ optional regex, 3 auto-category-sort, l list, r reverse/flatten, q quit) or CLI flags: =--source --patterns --container --dry-run --reverse --one-shot --regex --interactive=. Collision-safe names (name(1).ext), logs to =logs/app-YYYYMMDD.log=.
+
+** =snapshot-rofi=
+*Why:* GTD-style quick capture into org-mode. Opens rofi pre-filled with existing inbox notes (newest first); picking existing text jumps nvim to that exact line; new text appends a heading block to =~/org/inbox.org= and — if the clipboard holds an image (cliphist/wl-paste/xclip detection chain) — saves it as =imgs/DD-MM-YYYY@hh-mm-ss-AM.png= and links it.
+
+** =emote=
+*Why:* emoji + kaomoji picker. Self-extracting file: code before =exit=, 3,380-entry data section after =### DATA ###=; pipes rofi selection through wl-copy (Wayland) or xclip (X11). Includes full country-flag set and combo families like =(⌐■_■)=.
+
+** =calc=
+*Why:* rofi calculator. Expression → =bc -l= (sqrt/trig/log available) → result copied to clipboard + notify-send "=expr = result=".
+
+** =rofi-searchweb=
+*Why:* search launcher. First rofi prompt takes the query, second picks engine (google/duckduckgo/brave/github/youtube/arch wiki/man.archlinux), URL-encodes via jq, opens with xdg-open.
+
+** =new-word=
+*Why:* vocabulary capture feeding the shell startup-word feature. Two rofi prompts (word, meaning/context) append =word | meaning= to =/mnt/hdd/words.txt= with a notification.
+
+** =rand52=
+*Why:* self-quiz generator. fd lists .txt files → fzf pick → shuf 52 lines → numbered list written to =./answers.txt=.
+
+** =timer=
+*Why:* countdown + time tracking. Prompts duration (termdown syntax: 30s, 5min, 1h30m…) and task name, runs termdown, plays timer-sound.mp3, appends =task/start/end/duration= row to =/mnt/hdd/tasks-log.txt=.
+
+** =toglang=
+*Why:* X11 layout toggle US ↔ Arabic via setxkbmap query/set. Bound to Super+Space in i3.
+
+** =region-to-gif=
+*Why:* region GIF recorder. Wayland: =wlgif -o ~/Pictures/out.gif=; else byzanz-record with xrectsel geometry. Ctrl+C stops.
+
+** =cwp=
+*Why:* interactive wallpaper chooser with chafa image previews over =/mnt/hdd/Favorites= (fd+fzf). Wayland: applies through hyprpaper to every connected monitor; X11: xwallpaper --focus.
+
+** =tst=
+*Why:* debug probe echoing which display server is active ($XDG_SESSION_TYPE, falling back to $WAYLAND_DISPLAY/$DISPLAY).
+
+** Other files here
+- =README.org= — the original detailed script documentation (this section condenses it)
+- =plan-todos.org=, =bugs.org= — planning notes and the pdfdash bug ledger
+
+* Other root files
+
+** =bread_kdenlive.shortcuts=
+*Why:* Kdenlive keyboard-shortcut profile (INI-style =[Shortcuts]= section mapping action-id=key). Named "bread". Highlights: timeline track targeting on bare =1..9= (video), =Alt+1..9= (audio), =Ctrl+1..9= (targets), =Alt+Shift+A= activate all targets, =Alt+Shift+O= add clip; many unused actions explicitly set to =none= to declutter.
+
+** =.config/opencode/skills/*=
+*Why:* custom opencode AI-assistant skills: =better= (response quality), =cs_clean= (C# conventions), =py_clean= (Python conventions).
+
+* Notes & quirks
+
+- =screenrecord= never sources =p_lib_session.sh= itself; standalone invocation only works if the library functions are already defined (i.e., launched via =record='s wrappers)
+- =cps e= references =$HOME/dotfiles/dt-cp-open.el=, which is absent from the repo
+- =scripts/rand52= writes =answers.txt= (plural) — older docs say =answer.txt=
+- =.config/hypr/ws-click.sh= is currently unwired/vestigial
+- =.config/nvim/lua/plugins/no-bad-nvim.lua#= is a stray editor backup file
+

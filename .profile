@@ -4,7 +4,7 @@
 # exports & PATH
 export EDITOR='nvim'
 export VISUAL='nvim'
-export BROWSER='brave'
+export BROWSER='helium-browser'
 export TERMINAL=/usr/bin/kitty
 # opencode
 export PATH=/home/dt/.opencode/bin:$PATH

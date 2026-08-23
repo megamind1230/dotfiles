@@ -7,6 +7,7 @@
 ;; and `package-pinned-packages`. Most users will not need or want to do this.
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
+(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
 (package-initialize)
 ;; Refresh package contents if not already done
 (unless package-archive-contents
@@ -494,9 +495,9 @@
 
 (add-hook 'csharp-mode-hook #'eglot-ensure)
 
-(define-key eglot-mode-map (kbd "C-c e f") #'eglot-format)
-(define-key eglot-mode-map (kbd "C-c e r") #'eglot-rename)
-(define-key eglot-mode-map (kbd "C-c e a") #'eglot-code-actions)
+;; (define-key eglot-mode-map (kbd "C-c e f") #'eglot-format)
+;; (define-key eglot-mode-map (kbd "C-c e r") #'eglot-rename)
+;; (define-key eglot-mode-map (kbd "C-c e a") #'eglot-code-actions)
 
 ;; ----------------------------------------------------------------------
 ;; 4. Corfu + Cape (inline completion, replaces company + company-box)
@@ -664,8 +665,8 @@
   (interactive)
   (elfeed-search-tag-all-unread))
 
-;; toggle evil-mode
-(global-set-key (kbd "C-c e") #'evil-mode)
+;; ;; toggle evil-mode
+;; (global-set-key (kbd "C-c e") #'evil-mode)
 
 ;; --------------------
 ;; Org → PDF export
@@ -1060,20 +1061,81 @@
    ("C-c d d" . denote-dired)
    ("C-c d g" . denote-grep))
   :config
-  (setq denote-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/"))
+  (setq denote-directory (expand-file-name "/mnt/hdd/obsi/vault_bank/core/"))
+  (make-directory denote-directory t)
 
   ;; Automatically rename Denote buffers when opening them so that
   ;; instead of their long file name they have, for example, a literal
   ;; "[D]" followed by the file's title.  Read the docstring of
   ;; `denote-rename-buffer-format' for how to modify this.
-  (denote-rename-buffer-mode 1))
+  (denote-rename-buffer-mode 1)
+
+  ;; Optional: convert current non-Denote file to Denote format
+  (defun dt/denote-convert-current-file ()
+    "Convert current buffer's file to Denote format.
+Prompts for title/keywords, uses file's modification time.
+Moves file to denote-directory with proper naming."
+    (interactive)
+    (let* ((file (buffer-file-name))
+           (title (read-string "Title: " (file-name-base file)))
+           (keywords (read-string "Keywords (space-separated): " ""))
+           (date (or (buffer-file-attribute 'time-modified)
+                     (current-time)))
+           (new-name (denote--rename-file file title
+                            (when keywords (split-string keywords))
+                            nil date nil)))
+      (when new-name
+        (rename-file file new-name t)
+        (message "Converted to: %s" new-name)))))
+
+(add-to-list 'load-path "/home/dt/.emacs.d/elpa/denote-explore-20260823/")
+(use-package denote-explore
+  :load-path "/home/dt/.emacs.d/elpa/denote-explore-20260823/"
+  :custom
+  ;; Where to store network data and in which format
+  (denote-explore-network-directory "/mnt/hdd/obsi/vault_bank/core/")
+  (denote-explore-network-filename "denote-network")
+  ;; (denote-explore-network-keywords-ignore "<keywords list>")
+  ;; (denote-explore-network-regex-ignore "<regex>")
+  (denote-explore-network-format 'd3.js)
+  (denote-explore-network-d3-colours 'SchemeObservable10)
+  (denote-explore-network-d3-js "https://d3js.org/d3.v7.min.js")
+  ;; (denote-explore-network-d3-template "<file path>")
+  ;; (denote-explore-network-graphviz-header "<header strings>")
+  (denote-explore-network-graphviz-filetype 'svg)
+  :bind
+  (;; Statistics
+   ("C-c e s n" . denote-explore-count-notes)
+   ("C-c e s k" . denote-explore-count-keywords)
+   ("C-c e s e" . denote-explore-barchart-filetypes)
+   ("C-c e s w" . denote-explore-barchart-keywords)
+   ("C-c e s t" . denote-explore-barchart-timeline)
+   ;; Random walks
+   ("C-c e w n" . denote-explore-random-note)
+   ("C-c e w r" . denote-explore-random-regex)
+   ("C-c e w l" . denote-explore-random-link)
+   ("C-c e w k" . denote-explore-random-keyword)
+   ;; Denote Janitor
+   ("C-c e j d" . denote-explore-duplicate-notes)
+   ("C-c e j D" . denote-explore-duplicate-notes-dired)
+   ("C-c e j l" . denote-explore-missing-links)
+   ("C-c e j z" . denote-explore-zero-keywords)
+   ("C-c e j s" . denote-explore-single-keywords)
+   ("C-c e j r" . denote-explore-rename-keywords)
+   ("C-c e j y" . denote-explore-sync-metadata)
+   ("C-c e j i" . denote-explore-isolated-files)
+   ;; Visualise denote
+   ("C-c e n" . denote-explore-network)
+   ("C-c e r" . denote-explore-network-regenerate)
+   ("C-c e d" . denote-explore-barchart-degree)
+   ("C-c e b" . denote-explore-barchart-backlinks)))
 
 (defun dt/cd-personal-vault ()
   "Change the current buffer's `default-directory' to the vault directory."
   (interactive)
   (setq default-directory
         (expand-file-name (or (bound-and-true-p denote-directory)
-                              "/mnt/hdd/obsi/vault_bank/")))
+                              "/mnt/hdd/obsi/vault_bank/core/")))
   (message "pwd: %s" default-directory))
 (global-set-key (kbd "C-c g v") #'dt/cd-personal-vault) ;; go to vault
 
@@ -1402,3 +1464,13 @@ Examples:
   :after evil
   :config
   (global-evil-mc-mode 1))
+
+
+;; --------------------
+;; magit, just trying
+;; --------------------
+
+
+(use-package magit
+  :ensure t
+  )

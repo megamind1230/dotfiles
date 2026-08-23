@@ -1,0 +1,15 @@
+
+//@theme "/usr/share/rofi/themes/Arc-Dark.rasi"
+
+//@theme "/usr/share/rofi/themes/purple.rasi"
+
+//@theme "/usr/share/rofi/themes/Arc-Dark.rasi"
+
+configuration {
+    drun-display-format: "{name}";
+    sort: true;
+}
+
+//@theme "/usr/share/rofi/themes/solarized_alternate.rasi"
+
+@theme "/home/dt/.local/share/rofi/themes/centered-simple-tokyonight.rasi"
