@@ -1,4 +1,4 @@
-#+TITLE: dt's dotfiles
+#+TITLE: baka's dotfiles
 
 Personal configuration for an Arch Linux setup: dual Wayland (Hyprland) / X11 (i3) sessions, bash, Emacs, two Neovim configs, Helix, Zed, Kitty, mpv, plus a toolbox of shell scripts.
 

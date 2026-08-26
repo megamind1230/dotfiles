@@ -255,6 +255,8 @@ hl.bind(mainMod .. " + ALT + K",     hl.dsp.exec_cmd("/home/dt/dev/mouseless-kan
 
 
 hl.window_rule({ match = { class = "Emacs" }, opacity = "0.80 override 0.80 override", })
+hl.window_rule({ match = { class = "xdg-desktop-portal-gtk" }, size = {"(monitor_w*0.8)", "(monitor_h*0.8)"}, center = true,  })
+
 
 -- rofi open window fzf
 hl.bind(mainMod .. " + grave",       hl.dsp.exec_cmd("rofi -show window"))
@@ -265,3 +267,6 @@ hl.bind(mainMod .. " + SHIFT + H", hl.dsp.window.move({ direction = "left" }))
 hl.bind(mainMod .. " + SHIFT + J", hl.dsp.window.move({ direction = "down" }))
 hl.bind(mainMod .. " + SHIFT + K", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.window.move({ direction = "right" }))
+
+
+--- xdg-desktop-portal-gtk
