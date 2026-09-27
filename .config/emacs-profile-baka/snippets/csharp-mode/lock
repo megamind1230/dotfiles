@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: lock
+# key: lock
+# --
+lock (${1:_lock}) {
+    $0
+}

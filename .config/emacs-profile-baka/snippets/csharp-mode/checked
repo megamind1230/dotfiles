@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: checked
+# key: checked
+# --
+checked {
+    $0
+}

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: string interpolation
+# key: str-int
+# --
+$"${1}"

@@ -2,8 +2,8 @@
 
 
 # exports & PATH
-export EDITOR='nvim'
-export VISUAL='nvim'
+export EDITOR='emacsclient -s emacs-profile-baka -c'
+export VISUAL='emacsclient -s emacs-profile-baka -c'
 export BROWSER='helium-browser'
 export TERMINAL=/usr/bin/kitty
 # opencode
@@ -15,3 +15,4 @@ export PATH="$HOME/.emacs.d/bin:$PATH"
 export PATH="/home/dt/scripts/:$PATH"
 export PATH="$HOME/.dotnet/tools:$PATH"
 PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+. "$HOME/.cargo/env"

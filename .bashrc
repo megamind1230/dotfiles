@@ -42,18 +42,19 @@ fi
 export PATH=/home/dt/.opencode/bin:$PATH
 
 # exports & PATH
-export MANPAGER='nvim +Man!'
 export MANWIDTH=999 #so important with > export MANPAGER='nvim +Man!'
-export EDITOR='nvim'
-export VISUAL='nvim'
+# export MANPAGER='nvim +Man!'
+# export EDITOR='nvim'
+# export VISUAL='nvim'
+export EDITOR='emacsclient -s emacs-profile-baka -c'
+export VISUAL='emacsclient -s emacs-profile-baka -c'
 export BROWSER='helium-browser'
 export TERMINAL=/usr/bin/kitty
 # for lunar vim
 export PATH=/home/dt/.local/bin:$PATH
-# for doom
-# export PATH=/home/dt/.config/emacs/bin:$PATH
-export PATH="$HOME/.config/emacs/bin:$PATH"
-export PATH="$HOME/.emacs.d/bin:$PATH"
+# for doom (new profile location)
+export PATH="$HOME/.config/emacs-doom/emacs/bin:$PATH"
+export DOOMDIR="$HOME/.config/emacs-doom/doom"
 # add scripts folder to my path
 export PATH="/home/dt/scripts/:$PATH"
 # add dotnet tools
@@ -149,3 +150,4 @@ fi
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
 # eval "$(/bin/brew shellenv)"
+. "$HOME/.cargo/env"

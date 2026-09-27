@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# @desc Launch an emacs profile (starts its daemon if needed)
+# Registry: ~/.config/emacs-profiles (label|name|server|init-dir|env)
+# Usage: emacs-app [name] [emacsclient args...]   (default name: baka)
+
+APP="baka"
+if [ $# -gt 0 ]; then
+  APP="$1"
+  shift
+fi
+
+REGISTRY="${EMACS_PROFILES_FILE:-$HOME/.config/emacs-profiles}"
+SERVER=""; INIT_DIR=""; ENVS=""
+
+while IFS='|' read -r _label name server dir envs; do
+  [[ "$_label" =~ ^[[:space:]]*#.*$ || -z "$name" ]] && continue
+  if [[ "$name" == "$APP" ]]; then
+    SERVER="$server"
+    INIT_DIR="${dir//\$HOME/$HOME}"
+    ENVS="${envs//\$HOME/$HOME}"
+    break
+  fi
+done < "$REGISTRY"
+
+if [[ -z "$SERVER" ]]; then
+  echo "emacs-app: unknown profile '$APP' (see $REGISTRY)" >&2
+  exit 1
+fi
+
+# export profile env (e.g. DOOMDIR) for the daemon and its children
+if [[ -n "$ENVS" ]]; then
+  # shellcheck disable=SC2163
+  export $ENVS
+fi
+
+# if daemon running, open client; otherwise start daemon then open client
+LOG="$HOME/.cache/emacs-$SERVER.log"
+if ! emacsclient -s "$SERVER" -e t &>/dev/null; then
+  mkdir -p "$HOME/.cache"
+  if [ -n "$INIT_DIR" ]; then
+    /usr/bin/emacs --init-directory "$INIT_DIR" --daemon="$SERVER" >>"$LOG" 2>&1 &
+  else
+    /usr/bin/emacs --daemon="$SERVER" >>"$LOG" 2>&1 &
+  fi
+  # wait for daemon to be ready (max 10s)
+  ready=0
+  for i in $(seq 1 100); do
+    emacsclient -s "$SERVER" -e t &>/dev/null && { ready=1; break; }
+    sleep 0.1
+  done
+  if [ "$ready" -ne 1 ]; then
+    echo "emacs-app: daemon '$SERVER' failed to start, see $LOG" >&2
+    exit 1
+  fi
+fi
+
+emacsclient -s "$SERVER" -c "$@"

@@ -1,0 +1,110 @@
+                         ━━━━━━━━━━━━━━━━━━━━━━
+                          CHANGE LOG OF DENOTE
+
+                              Protesilaos
+                          info@protesilaos.com
+                         ━━━━━━━━━━━━━━━━━━━━━━
+
+
+This document contains the release notes for each tagged commit on the
+project’s main git repository: <https://github.com/protesilaos/denote>.
+
+The newest release is at the top.  For further details, please consult
+the manual: <https://protesilaos.com/emacs/denote>.
+
+Table of Contents
+─────────────────
+
+1. Version 4.2.0 on 2026-05-20
+
+
+1 Version 4.2.0 on 2026-05-20
+═════════════════════════════
+
+  This version brings several improvements to the core `denote' package
+  as well as all the Denote extensions I maintain. The core package is
+  stable, its feature set is rich, and the wider ecosystem of extensions
+  is growing.
+
+  Most of the changes documented herein are of interest to experienced
+  users who may be looking for ways to refine their workflow. I
+  recommend that new users start with the basics, as I explained them in
+  the original video demonstration of Denote or as they are documented
+  in the manual’s section for newcomers:
+
+  Webpage
+        <https://protesilaos.com/emacs/denote#h:c54bedb4-5377-4dbd-853c-5870ace6eb33>.
+  Info manual
+        With the latest `denote' package installed, evaluate `(info
+        "(denote) Getting started with Denote")'.
+
+  Remember that the release notes are true only at the time of
+  publication. The single source of truth is the official manual.
+
+
+1.1 Core Denote
+───────────────
+
+1.1.1 Overview of the new features
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
+  • The command `denote-dired-focus' will filter the results of an
+    existing `denote-dired' buffer. Use this to narrow down the results.
+
+  • In Org files, the `denote:' link type can now be previewed using the
+    built-in `org-link-preview' command, starting with Org version
+    `9.8.0'.
+
+  • The command `denote-link-or-create-with-command' extends the
+    existing convenience functions of the “do or create note” kind.
+
+  • The `denote-file-prompt' uses completion metadata to sort by most
+    recently accessed, group by directory or file extension, and cover
+    packages that display cosmetic icons alongside completion
+    candidates.
+
+  • Denote now enforces a controlled vocabulary for keywords when
+    `denote-infer-keywords' is set to `nil', such that only the
+    `denote-known-keywords' are provided as an option at the relevant
+    prompts.
+
+  • The mechanism for integrating Denote with `org-capture' now supports
+    prompting for an signature via `denote-org-capture-with-prompts'
+    (the signature is an optional, free-form component of the Denote
+    file-naming scheme).
+
+  • Several packages that extend Denote are documented in the manual. If
+    you have a package for Denote, let me know and I will write a
+    section about it.
+
+
+1.1.2 Focus a `denote-dired' buffer with `denote-dired-focus'
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
+  The command `denote-dired' produces a Dired listing of file names that
+  match the given regular expressions. Users can benefit from the Denote
+  file-naming scheme to, for example, include all files that have the
+  keyword `_emacs'. In the resulting Dired buffer, the new command
+  `denote-dired-focus' can then be invoked to further narrow down the
+  results, such as to only show files that have `2026' in their file
+  (with default settings, the date is part of the Denote identifier).
+
+  I implemented this feature in response to issue 693 by 82Kang:
+  <https://github.com/protesilaos/denote/issues/693>.
+
+
+1.1.3 Improvements to the file prompt
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
+  Various Denote commands prompt for a file name: for instance,
+  `denote-link' asks which file to link to. This file prompt is now
+  augmented with completion metadata that transform how files look and
+  how the information is organised.
+
+  Before, the prompt presented full file names like:
+
+  ┌────
+  │ 20220610T043241--initial-thoughts-on-the-zettelkasten-method__notetaking.org
+  └────
+
+  …  …

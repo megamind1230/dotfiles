@@ -2,14 +2,14 @@
 
 Personal configuration for an Arch Linux setup: dual Wayland (Hyprland) / X11 (i3) sessions, bash, Emacs, two Neovim configs, Helix, Zed, Kitty, mpv, plus a toolbox of shell scripts.
 
-The repo mirrors =$HOME=: files get symlinked into place (=~/.bashrc=, =~/.emacs=, =~/.config/*=). =~/scripts= is a symlink to this repo's =scripts/= directory and is added to =$PATH=, so every script here runs as a bare command from anywhere.
+The repo mirrors =$HOME=: files get symlinked into place (=~/.bashrc=, =~/.config/*=, including =~/.config/emacs-profiles=). =~/scripts= is a symlink to this repo's =scripts/= directory and is added to =$PATH=, so every script here runs as a bare command from anywhere.
 
 * Features at a glance
 
 1. *Dual display-server support* — everything works on both Wayland (Hyprland, Sway) and X11 (i3); scripts auto-detect the session type
 2. *hyprland:* =SUPER+Enter= → kitty, =SUPER+Q= → close window
 3. *hyprland:* =SUPER+W / E / R= → helium browser / thunar / rofi app launcher
-4. *hyprland:* =SUPER+Z= emacsclient, =SUPER+C= zed, =SUPER+O= obsidian, =SUPER+T= Telegram, =SUPER+B= web-search rofi
+4. *hyprland:* =SUPER+Z / SHIFT+Z / ALT+Z= baka / doom / vanilla emacs, =SUPER+C= zed, =SUPER+O= obsidian, =SUPER+T= Telegram, =SUPER+B= web-search rofi
 5. *hyprland:* =SUPER+ALT+= / =SUPER+ALT+-= → volume up/down (pactl), =SUPER+M= mute
 6. *hyprland:* XF86 media keys → volume ±5% / mute / mic-mute (wpctl), brightness ±5% (brightnessctl), play/pause/next/prev (playerctl)
 7. *hyprland:* =SUPER+ALT+O / I= → extra brightness up/down
@@ -30,20 +30,20 @@ The repo mirrors =$HOME=: files get symlinked into place (=~/.bashrc=, =~/.emacs
 22. *i3:* =SUPER+SHIFT+A= shrink-focused-window-to-90%-and-center then send to scratchpad, =SUPER+A= recall centered, =SUPER+CTRL+n= extract scratchpad window onto workspace n
 23. *i3:* autostart stack — autotiling, picom (glx), clipmenud, dunst, random xwallpaper, touchpad natural-scroll tuning, xss-lock+i3lock, nm-applet
 24. *shell:* prompt shows =(time)= user:host [cwd] in color; prints a random vocabulary word on every new shell (from =/mnt/hdd/words.txt=)
-25. *shell:* man pages open inside nvim (=MANPAGER='nvim +Man!'=)
+25. *shell:* wide man pages (=MANWIDTH=999=; the nvim-=MANPAGER= line is commented out)
 26. *shell:* safety aliases — =rm -i --preserve-root=, =mv -i=, =mkdir -p=, =mkcd=
 27. *shell:* cd shortcuts — =cdc= config, =cdh= home, =cdl= Downloads, =cdcore=, =cdobsi=/=ob= obsidian core, typo fixers =cd../=cd.=
-28. *shell:* instant config editing — =nb nba nbf nbp nv nhyper nkit ni3 nw…= open the right dotfile in your active nvim
+28. *shell:* instant config editing — =nb nba nbf nbp nv nhyper nkit ni3 nw…= open the right dotfile in baka emacs (via =my_active_nvim=)
 29. *shell:* =ls= is long/all/time-sorted/human/dirs-first; =h= fuzzy-searches history and pastes the picked command back
 30. *shell:* fzf tools — =nf= / =fnv= pick file → nvim; =fzm= directory manager (tree preview, multi-open, Del deletes, Ctrl-D/Ctrl-F flip dir/file mode); =fkill= pick processes to kill
-31. *shell:* readline keys — =Alt+N= neovim-config chooser (default vs LazyVim), =Alt+S= script runner, =Alt+A= alias picker, =Alt+F= function picker
+31. *shell:* readline keys — =Alt+E= editor-config chooser (neovim + emacs), =Alt+S= script runner, =Alt+A= alias picker, =Alt+F= function picker
 32. *shell:* stock fzf integration — =Ctrl-T= insert file, =Ctrl-R= history search, =Alt-C= fuzzy cd
 33. *shell:* ripgrep family — =rgnv=/=rgnvp= live-regrep with bat preview → opens match at line in nvim; =rgcopy= copies =file:line= to clipboard; =rgy= opens match dir in yazi; =fdoc= vault notes browser; =fcd= / =fcdg= fuzzy cd (all dirs / git repos); =fzy= yazi dir opener; =fmv= interactive move
 34. *shell:* =ex <archive>= extracts tar/tar.gz/bz2/xz/zip/rar/7z/gz by extension; =compress= builds them back
 35. *shell:* pacman/AUR helpers — =inst= / =pinst= / =search= / =psearch=
 36. *shell:* =bakam= spawns a 4-window tmux workspace (doc/grep/notes/quotes), =bakat= reattaches later
 37. *shell:* system aliases — =nap= suspend, =die= poweroff, =dtlog= kill own session, =camfix= reload v4l2loopback webcam, =td= termdown, =mmon/mmoff= capslock→mouse remap service
-38. *shell:* =backup-dotfiles= dated repo snapshot to HDD; =now= timestamped folder; =wp= random wallpaper name; =note= fast-note; =e/ed= emacsclient GUI + daemon
+38. *shell:* =backup-dotfiles= dated repo snapshot to HDD; =now= timestamped folder; =wp= random wallpaper name; =note= fast-note; =e= launches baka emacs (daemon autostarts); =ed= starts any missing emacs daemon (idempotent); =es= daemon status; =emacs-daemons-restart= force-restarts all three
 39. *competitive programming:* =cps <site> <lang> <ide>= scaffolds =~/cp/<site>-<id>-<lang><ide>/= from a template with input/output files and opens the right editor — 60 generated wrappers like =cfcsc=, =cfpyh=, =ltpyn=, =ltrsgz= (sites: cf=Codeforces, lt=LeetCode; langs: cs/c/cpp/py/go/rs; ides: n=LazyVim, e=Emacs, h=Helix, v=VSCode, z=Zed)
 40. *recording:* =record= → screen (optionally + desktop audio) and mic recorded simultaneously into one merged mp4; standalone =screenrecord= / =screenrecord-audio= / =mic= variants; all compositor-aware (wl-screenrec / wf-recorder / ffmpeg); =mic= runs a 9-stage broadcast chain (high/lowpass, FFT noise reduction, adeclick, deesser, voice EQ, compand, gain, limiter)
 41. *recording:* =p_lib_session.sh= shared library abstracting display server, compositor, monitor/window geometry, audio sink & source, clipboard
@@ -81,12 +81,12 @@ The repo mirrors =$HOME=: files get symlinked into place (=~/.bashrc=, =~/.emacs
 73. *nvim:* floaty (local plugin) floating terminal — =leader+tt=, =CTRL+`=, =F12=; terminal exits via double-Esc or Ctrl-o
 74. *nvim:* plugins — orgmode (+org-roam, org-bullets), telescope (+orgmode extension), easy-dotnet C# tooling w/ LSP, twilight dimming, lualine statusline, oil.nvim editor-in-buffer, mini.nvim suite (jump2d/ai/move/pairs/surround), colorizer
 75. *nvim:* treesitter starts on every buffer; parsers auto-update after pack updates; retrobox colorscheme (habamax fallback)
-76. *lazyvim:* second full Neovim config, switchable live from the shell — =Alt+N= / =nvims= menu, or =lz= alias (=NVIM_APPNAME=LazyVim nvim=)
+76. *lazyvim:* second full Neovim config, switchable live from the shell — =Alt+E= / =editor-switcher= menu, or =lz= alias (=NVIM_APPNAME=LazyVim nvim=)
 77. *lazyvim:* adds floaty terminal (same binds as default nvim), competition.lua CP layout, wildcharm colorscheme, rust-analyzer preinstalled via mason
 78. *helix:* custom peachpuff theme; =SPACE+r= save-all → run bash run.sh → reload; =SPACE+l= competitive-programming layout (input.txt right, output.txt below); =jk= normal mode
 79. *helix:* LSP/formatters wired per language — clangd + clang-format (c/c++), csharp-ls, pyright + ruff format (line 88), rustfmt, gofmt
 80. *zed:* vim mode, mouse-wheel zoom, regex + smartcase search by default, format-on-save, Go uses hard tabs
-81. *yazi:* =g o= opens current dir in thunar, =g k= opens it in kitty
+81. *yazi:* =g o= thunar, =g k= kitty, =g e= emacsclient (baka config, server mode), =g n= neovim via kitty
 82. *kdenlive:* "bread" shortcut preset — timeline targets on plain =1..9= (video), =Alt+1..9= (audio), =Ctrl+1..9= (target switch), =Alt+Shift+A= activate all targets, etc.
 83. *kitty:* gold block cursor (no blink), no window decorations, no audio bell, 80% background opacity, =Shift+Alt+j/k= scroll by line
 84. *mpv:* volume 110%, playback speed 1.2x, borderless, centered window, infinite loop
@@ -96,10 +96,10 @@ The repo mirrors =$HOME=: files get symlinked into place (=~/.bashrc=, =~/.emacs
 *Why:* sourced by the display manager / login shell — sets the environment before Hyprland or i3 starts. Non-interactive counterpart of =.bashrc=.
 
 Sections:
-- *Exports* — =EDITOR=/=VISUAL==nvim=, =BROWSER=brave=, =TERMINAL=kitty=
-- *PATH* — prepends =~/.opencode/bin=, =~/.local/bin=, =~/.config/emacs/bin= (doom), =~/.emacs.d/bin=, =~/scripts/= (the symlink into this repo), =~/.dotnet/tools=; appends =/opt/nvim-linux-x86_64/bin=
+- *Exports* — =EDITOR=/=VISUAL==emacsclient -s emacs-profile-baka -c=, =BROWSER=helium-browser=, =TERMINAL=kitty=
+- *PATH* — prepends =~/.opencode/bin=, =~/.local/bin=, =~/scripts/= (the symlink into this repo), =~/.dotnet/tools=; appends =/opt/nvim-linux-x86_64/bin=. (It also still lists =~/.config/emacs/bin= and =~/.emacs.d/bin= — both point at directories that no longer exist, leftover entries.)
 
-Note: uses =BROWSER=brave= while =.bashrc= uses =brave-browser= — a small inconsistency between the two files.
+Both files agree on =BROWSER=helium-browser= these days.
 
 ** =.bashrc=
 *Why:* main bash config for interactive shells. It's an *orchestrator*: baseline settings, then sources the three extension files in order.
@@ -108,7 +108,7 @@ Sections:
 1. *Interactivity guard* — returns immediately for non-interactive shells
 2. *History* — no dupes / ignores space-prefixed commands, append mode, HISTSIZE=1000
 3. *Shell options* — checkwinsize (globstar/lesspipe commented out)
-4. *Environment* — opencode on PATH; =MANPAGER='nvim +Man!'= and =MANWIDTH=999= (man pages inside nvim); EDITOR/VISUAL/BROWSER(=brave-browser=)/TERMINAL; PATH prepends (.local/bin, emacs bins, scripts/, dotnet tools); recording defaults =SCREENREC_AUDIO_SINK= / =SCREENREC_AUDIO_SOURCE= consumed by the mic/screenrecording scripts
+4. *Environment* — opencode on PATH; =MANWIDTH=999= (the =MANPAGER='nvim +Man!'= line is commented out); EDITOR/VISUAL=emacsclient on the baka socket; BROWSER=helium-browser; TERMINAL=kitty; PATH prepends (.local/bin, doom emacs bin, scripts/, dotnet tools) plus a =DOOMDIR= export; recording defaults =SCREENREC_AUDIO_SINK= / =SCREENREC_AUDIO_SOURCE= consumed by the mic/screenrecording scripts
 5. *Prompt* — color PS1 =user@host:cwd$=, sets xterm window title
 6. *ls colors* — dircolors eval + basic =ls --color= alias (overridden later by -aliases)
 7. *Completion* — sources bash-completion
@@ -127,14 +127,14 @@ Sections:
 
 | Group | Contents |
 |---+---|
-| Variables | =my_active_nvim= indirection so every =n*= editor alias points at one configurable editor; =fastnote= path |
+| Variables | =my_active_nvim= (=emacsclient -s emacs-profile-baka -c=) controls what the =nb/nv/…= config-editing aliases open with; =fastnote= path |
 | Safety | =rm -i --preserve-root=, =mv -i=, =mkdir -p=, function =mkcd <dir>= |
 | Git | =gst= → git status |
 | cd | =cd..=, =cd.= → .. ; =cd~= home; =cdc= ~/.config; =cdh= ~; =cdl= Downloads; =cdcore= /mnt/hdd/hcore; =cdobsi= / =ob= obsidian vault core |
 | Listings | =ls -larth --group-directories-first --color=; per-config-dir listers =lsalac nvls lsqtile lshyper lskit…= |
-| Edit configs | open dotfiles in =$my_active_nvim=: =nb nba nbf nbp= (bashrc family), =nv= init.lua, =nhyper= hyprland.lua, =nkit= kitty, =ni3= i3, =nxmo= xmonad (legacy), =nw= words.txt |
+| Edit configs | open dotfiles in =$my_active_nvim= (=emacsclient -s emacs-profile-baka -c=): =nb nba nbf nbp= (bashrc family), =nv= init.lua, =nhyper= hyprland.lua, =nkit= kitty, =ni3= i3, =nxmo= xmonad (legacy), =nw= words.txt |
 | fzf | =nf= fzf→nvim; =fnv= fd+fzf find-any-file→nvim; =fzm= multi-select directory manager with tree preview (Enter open, Del rm -ri, Ctrl-V preview toggle, Ctrl-D dirs, Ctrl-F files, Ctrl-A/X select all/none); =fkill= multi-kill processes |
-| Launch & misc | =sb= reload bashrc; =e= emacsclient GUI (+daemon autostart); =ed= emacs daemon; =y= yazi; =oc= opencode; =anki=; =note= fast-note.org; =file= thunar here; =lv= lunarvim (legacy); =backup-dotfiles= dated HDD snapshot; =h= history\|fzf paste-back; =wp= random wallpaper name; =now= timestamped dir |
+| Launch & misc | =sb= reload bashrc; =e= / =emacs= launch baka via =emacs-profile= (daemon autostarts); =ed= start any missing emacs daemon (safe to repeat); =emacs-daemons-restart= force-restart all three; =es= daemon status; =y= yazi; =oc= opencode; =anki=; =note= fast-note.org; =file= thunar here; =lv= lunarvim (legacy); =backup-dotfiles= dated HDD snapshot; =h= history\|fzf paste-back; =wp= random wallpaper name; =now= timestamped dir |
 | Tmux | =bakat= attach to session =baka= |
 | System | =dtlog= sudo pkill own user (logout); =nap= suspend; =die= shutdown now; =camfix= reload v4l2loopback; =td= termdown passthrough; =mmon/mmoff= start/stop capslock-mouse remap service |
 
@@ -150,14 +150,16 @@ Sections:
 - =ex <archive>= extracts by extension (tar, tar.gz/tgz, tar.bz2, tar.xz, zip, rar, 7z, gz, bz2)
 - =compress <out> <src>= creates tar/tar.gz/tar.bz2/tar.xz/zip/7z by output extension
 
-*** Neovim config switcher
-- aliases =nvimlazy= / =lz= run =NVIM_APPNAME=LazyVim nvim=
-- =nvims= fzf menu choosing =nvim= (default config) vs =LazyVim=, then execs with the right =NVIM_APPNAME=
-- *Alt+N* readline bind invokes =nvims= directly from the prompt
-
 *** Script runner
 - =scriptsRun= lists executable files in =~/scripts= with their first =# @desc= line, fzf-picks one, runs it
 - *Alt+S* readline bind invokes it from the prompt
+
+*** Emacs profiles (registry)
+- =~/dotfiles/emacs-profiles= (symlinked as =~/.config/emacs-profiles=) is the single source of truth: one =label|name|server|init-dir|env= line per profile (baka, doom, vanilla). Adding a config = appending a line — no aliases or functions to write
+- =emacs-profile <name> [args…]= launches a profile (starts its daemon first if needed); =ep= / =ep-doom= / =ep-vanilla= are thin shortcuts for the three real profiles
+- =emacs-profile-entry <name>= prints one profile's registry line (used internally); =emacs-daemon-start <name>= starts a single daemon headlessly
+- =ed= starts any daemon that isn't running (idempotent — safe on Hyprland reload, and what the Hyprland autostart hook calls); =emacs-daemons-restart= kills + restarts all three; =es= prints running/DOWN per profile plus the socket dir
+- =scripts/emacs-app= is the same logic as a standalone script (registry lookup → named =--daemon=<server>= → wait up to 10s → =emacsclient -s <server> -c=, failures logged to =~/.cache/emacs-<server>.log=); used by =emacs-profile=, =editor-switcher=, and the cps =e= IDE
 
 *** Fuzzy search family
 Shared recipe: live ripgrep re-run as you type (fzf =change:reload=), bat preview highlighting the match, right pane.
@@ -182,9 +184,8 @@ Shared recipe: live ripgrep re-run as you type (fzf =change:reload=), bat previe
 *** Competitive programming (cps system)
 Naming convention: =<website><language><ide>=.
 - =cps cf|lt <lang> n|e|h|v|z= prompts for problem link/number, derives an id, clones the language template from =~/cp/templates/= into =~/cp/<site>-<id>-.../=, renames csproj for C#, opens the IDE:
-  - =n= LazyVim + competition.lua layout; =e= emacsclient (loads =dt-cp-open.el=); =h= helix; =v= code; =z= zed
+  - =n= LazyVim + competition.lua layout; =e= baka profile (=dt/cp-open= via emacs-app); =h= helix; =v= code; =z= zed
 - Generates *60 wrapper functions* covering the full matrix (cfcsc…ltrsgz) so each combination is one command
-- Note: =cps e= references =$HOME/dotfiles/dt-cp-open.el=, which is not present in this repo
 
 *** Readline fuzzy pickers
 - *Alt+A* =fuzzy_alias= → insert picked alias name at prompt
@@ -192,6 +193,103 @@ Naming convention: =<website><language><ide>=.
 
 *** fzf integration
 - final line evals =fzf --bash= → stock Ctrl-T / Ctrl-R / Alt-C bindings (loaded after the custom functions on purpose)
+
+*** Editor Switcher
+
+Unified fzf picker for neovim and emacs configs — pick any editor with =Alt+E=.
+
+**** Quick Start
+
+- =Alt+E= (terminal): Fuzzy selector for all profiles
+- =ep=, =ep-doom=, =ep-vanilla=: Direct emacs launch shortcuts (any other profile: =emacs-profile <name>=)
+- =nvimlazy=, =lz=: Direct LazyVim launch
+
+**** Available Profiles
+
+| Type   | Name       | Command       | Description                 |
+|--------+------------+---------------+-----------------------------|
+| nvim   | my nvim    | =nvim=        | Custom config (default)     |
+| nvim   | LazyVim    | =nvimlazy=    | LazyVim distribution        |
+| emacs  | my emacs   | =ep=          | Baka config (default)       |
+| emacs  | doom       | =ep-doom=     | Doom Emacs                  |
+| emacs  | vanilla    | =ep-vanilla=  | Vanilla config (own init)   |
+
+The nvim entries are literal in =editor-switcher=; the emacs entries are generated from =~/.config/emacs-profiles= — this table is a snapshot of both.
+
+**** Adding a New Profile
+
+*Emacs* — append one line to =~/dotfiles/emacs-profiles= (=label|name|server|init-dir|env=, =$HOME= expanded at parse time):
+
+   #+begin_src bash
+   my experiment|test|emacs-profile-test|$HOME/.config/emacs-profile-test|
+   #+end_src
+
+Then =emacs-profile test=, =Alt+E=, =ed= and =es= all know about it — nothing else to edit. The =server= field is the socket name =emacsclient -s= connects to, so it must be unique per profile. If the config needs env vars (like =DOOMDIR=), append them as the fifth field: =DOOMDIR=$HOME/…=.
+
+*Neovim* — add one literal line to =editor-switcher= in =~/.bashrc-functions= (key = =NVIM_APPNAME=, empty key = default =~/.config/nvim/=):
+
+   #+begin_src bash
+   printf 'nvim|my label|MYKEY\n'
+   #+end_src
+
+Then reload: =source ~/.bashrc=.
+
+**** How It Works
+
+#+begin_example
+ Alt+E ──> fzf picker ──> (type "nvim" / "emacs" to filter) ──> launch editor
+                            │
+                            ├── nvim:*  ──> NVIM_APPNAME=<key> nvim               (foreground)
+                            └── emacs:* ──> setsid -f ~/scripts/emacs-app <name> (detached)
+                                              </dev/null >/dev/null 2>~/.cache/editor-switcher.log
+#+end_example
+
+- =nvim:*= profiles launch via =NVIM_APPNAME= (empty key = default =~/.config/nvim/=, a key makes nvim read =~/.config/nvim-<key>/=) and stay *in the foreground* — a TUI needs the terminal, so =Alt+E= keeps it until nvim exits
+- =emacs:*= profiles launch via =~/scripts/emacs-app=, which looks the name up in =~/.config/emacs-profiles=, exports that profile's env (e.g. =DOOMDIR=), starts its daemon with =--init-directory= + =--daemon=<server>= if the socket isn't answering (up to 10s, logged to =~/.cache/emacs-<server>.log=), then connects =emacsclient -s <server> -c=. Wrapped in =setsid -f=: own session, no controlling tty, no shell job entry — the prompt comes back immediately even while a cold daemon (doom) boots
+- Nothing prints to the terminal, so the detached emacs launch sends =stderr= to =~/.cache/editor-switcher.log= — that file is where a failed profile shows up
+- Escape or Ctrl+C cancels (the fzf picker itself is modal: it owns the tty while it is open)
+
+**** Directory Structure
+
+| Path                               | Purpose                                              |
+|------------------------------------+------------------------------------------------------|
+| =~/.config/emacs-profiles=         | Profile registry (symlink → =~/dotfiles/emacs-profiles=) |
+| =~/.config/emacs-profile-baka/=    | Baka Emacs config (default)                          |
+| =~/.config/emacs-profile-vanilla/= | Vanilla Emacs config                                 |
+| =~/.config/emacs-doom/=            | Doom Emacs (=emacs/= engine + =doom/= config)        |
+| =~/.config/nvim-*/=                | Neovim profile directories                           |
+| =~/scripts/emacs-app=              | Emacs launcher script (reads the registry)           |
+| =~/.bashrc-functions=              | =emacs-profile=, =ed=, =es=, =editor-switcher=       |
+
+**** Emacs-Doom Setup
+
+Doom Emacs needs a two-directory structure:
+
+#+begin_example
+~/.config/emacs-doom/
+├── emacs/     ← doom-emacs engine (cloned repo)
+└── doom/      ← your custom config (DOOMDIR: config.el, init.el, packages.el)
+#+end_example
+
+1. *Clone doom-emacs*:
+   #+begin_src bash
+   git clone https://github.com/doomemacs/doomemacs ~/.config/emacs-doom/emacs
+   #+end_src
+
+2. *Set =DOOMDIR= and run the installer* (interactive, takes a while) — so doom uses =~/.config/emacs-doom/doom=, not the default =~/.config/doom=:
+   #+begin_src bash
+   export DOOMDIR="$HOME/.config/emacs-doom/doom"
+   ~/.config/emacs-doom/emacs/bin/doom install
+   #+end_src
+
+3. *=DOOMDIR= is provided automatically*: the registry's doom line exports it before the daemon starts, so =ep-doom= and =Alt+E= just work. (It's also exported in =~/.bashrc= for the =doom= CLI/installer, which needs it outside Emacs.)
+
+4. *Test it*: =ep-doom= or pick via =Alt+E=
+
+The registry already sets =DOOMDIR= for the daemon at launch time, but the installer (=doom install=) also needs it in the environment — otherwise it creates =~/.config/doom/= and you end up with two separate doom configs.
+
+The =~/.config/emacs-doom/emacs/bin= PATH entry is already exported in =~/.bashrc=, so the =doom= CLI works once cloned.
+
 * Wayland desktop (Hyprland)
 
 ** =.config/hypr/hyprland.lua=
@@ -201,7 +299,7 @@ Sections:
 1. *Variables* — terminal=kitty, fileManager=thunar, menu=rofi drun, browser=helium-browser, mainMod=SUPER
 2. *Monitors* — eDP-1 1366x768@60 at 0x0 (laptop panel), VGA-1 1280x1024@60 to its right
 3. *Environment vars* — cursor size 24, TERMINAL, PATH += ~/.local/bin
-4. *Autostart (hyprland.start)* — ashell bar, dunst notifications, wallpaper.sh, kwalletd6, cliphist watchers for text+image paste events, emacs --daemon, gwenview set as default image handler
+4. *Autostart (hyprland.start)* — ashell bar, dunst notifications, wallpaper.sh, kwalletd6, cliphist watchers for text+image paste events, =bash -c 'source ~/.bashrc-functions && ed'= (starts any missing emacs daemon — idempotent, so config reloads never kill frames), gwenview set as default image handler
 5. *Look & feel* — 1px inner gaps / 0 outer, 1px borders with cyan→green 45° gradient on focus; dwindle layout; shadows on; subtle blur; rounding off
 6. *Animations* — fully defined bezier curves/animations table but master switch disabled
 7. *Misc* — no hyprland logo/splash
@@ -214,8 +312,9 @@ Keybinds:
 |---+---|
 | SUPER+Enter | kitty |
 | SUPER+Q | close window |
-| SUPER+W / E / R | helium browser / thunar / rofi drun |
-| SUPER+Z / C / O / T / B | emacsclient / zed / obsidian / Telegram / rofi-searchweb |
+| SUPER+W / E / R | helium browser / kitty+yazi / rofi drun |
+| SUPER+Z / SHIFT+Z / ALT+Z | baka / doom / vanilla emacs via emacsclient (daemons started at login by =ed=) |
+| SUPER+C / O / T / B | zed / obsidian / Telegram / rofi-searchweb |
 | SUPER+SHIFT+R | pick random image from Favorites → hyprpaper |
 | SUPER+SHIFT+V | toggle floating |
 | SUPER+H/J/K/L | focus left/down/up/right |
@@ -298,53 +397,25 @@ Sections: general colors (green/yellow/red, 5s interval, pipe separator); order 
 *Why:* video player defaults. Volume 110, speed 1.2, centered geometry (50%:50%), no border, loop playlist forever, force-window.
 * Editors
 
-** =.emacs=
-*Why:* vanilla-Emacs init (~1400 lines) turned into a Vim-flavored, org-centric writing/GTD and C# competitive-programming environment. Uses plain =use-package= + MELPA (no framework).
+** =.config/emacs-profile-baka/= (+ doom, vanilla)
+*Why:* three Emacs configs — baka (daily driver: Vim-flavored, org-centric writing/GTD and C# competitive programming), doom (Doom Emacs), vanilla (small standalone config) — all launched through the =emacs-profiles= registry so names, sockets, and env live in one file instead of scattered shell wrappers. Baka uses plain =use-package= + MELPA (no framework): a single =init.el= organized into banner-headed sections (previously split across =lisp/*.el= modules).
 
-Sections, in file order:
+Structure of baka's =init.el= (=~/.config/emacs-profile-baka/init.el=, plus =early-init.el= which disables the automatic pre-init package load so typst-ts-mode autoloads resolve in the right order):
 
-| # | Section | What it does |
-|---+---+---|
-| 1 | MELPA | adds melpa/melpa-stable/gnu archives, auto-refresh |
-| 2 | UI | no tool/menu/scroll bars; global line numbers; visual line wrap; hl-line; save-place; no blink; symlinks followed silently |
-| 3 | XDG hygiene | backups/auto-save/bookmarks/recentf/savehist/custom-file redirected to =~/.cache/emacs= and =~/.local/state/emacs=; no lockfiles |
-| 4 | QoL keys | =C-x k= kills current buffer; spaces-over-tabs; Esc = cancel; =C-x C-a= toggle last buffer |
-| 5 | Evil | evil-mode, evil-surround, which-key, visible-bell, evil-escape "jk" (300ms) |
-| 6 | Web queries | =C-c q d= DuckDuckGo region, =C-c q c= ChatGPT region |
-| 7 | Commenting | =gc= operator over motions (=gcap= etc.), =gcc= line comment |
-| 8 | Startup | Ubuntu Mono font, scratch starts in org-mode, splash off |
-| 9 | Org GTD | org dir on the vault (=vault_bank/core/my-org-agenda=); TODO/NEXT/DONE + WAITING/CANCELLED; =C-c c= capture to 0-inbox.org; =C-c a= agenda; custom GTD command =g= (agenda + NEXT + WAITING); refile to any agenda file ≤3 levels; DONE items skipped everywhere; evil keys gx/TAB/backtab; =C-c i= create org-id |
-| 10 | Theme | leuven-dark |
-| 11 | recentf | =C-x C-r= recent files (50) |
-| 12 | UTF-8 | language env + default coding system |
-| 13 | drag-stuff | =M-h/j/k/l= move region/line left/down/up/right globally |
-| 14 | Perspective | named workspaces: =C-c w s= switch, =k= kill, =r= rename |
-| 15 | Org inserters | =C-c i c= unchecked checkbox, =C-c i t= 2x2 table skeleton |
-| 16 | Markdown | markdown-mode; org-like TAB cycling + gx follow; ox-md export enabled |
-| 17 | vterm / csharp-mode | terminal emulator + C# major mode on .cs files |
-| 18 | Eglot LSP | builtin LSP client for C# (auto-shutdown, xref extension); =C-c e f/r/a= format/rename/actions |
-| 19 | Corfu + Cape | inline completion popup (auto after 0.1s, prefix 1, cycle, preview-insert); C-n/C-p/C-y in insert state; advice guarantees cape-file is always offered; terminal support via corfu-terminal; =M-/= completion-at-point |
-| 20 | Yasnippet | snippets in csharp/prog modes + yasnippet-snippets collection; custom capf backend exposes snippet keys to Corfu |
-| 21 | avy | =C-:= jump to visible char, =M-g a l= jump to line |
-| 22 | elfeed | RSS with 3 YouTube channel feeds; helpers mark-all-read/unread |
-| 23 | Toggle evil | =C-c e= flips evil-mode |
-| 24 | Org → PDF | xelatex compiler, two-pass export, junk (.tex/.log/.aux) cleaned up |
-| 25 | Zoom | =C-= / C--= frame text scale (default-text-scale) |
-| 26 | Pandoc converters | =dt/md-to-org=, =dt/org-to-md=, =dt/html-to-org= — replace region in-place via pandoc, stripping CUSTOM_ID drawers / ={.class}= attributes |
-| 27 | Replace advice | query-replace / replace-string act on whole buffer when no region active |
-| 28 | SPC leader | hand-rolled leader map in normal+visual states — see table below |
-| 29 | list-bindings | =C-c k= walks all keymaps into a sorted *keybindings* buffer ("you could just use C-h b .. but i created mine") |
-| 30 | Vertico stack | vertico minibuffer UI, marginalia annotations, orderless fuzzy completion styles |
-| 31 | Denote | notes in vault_bank; =C-c d n/r/l/b/d/g= new/rename/link/backlinks/dired/grep; buffers renamed "[D] title"; dired integration |
-| 32 | Dir jumps | =C-c g v= vault, =C-c g h= home, =C-c g o= org-agenda dir |
-| 33 | Server | server-start with stale-socket recovery (pairs with =e=/=ed= aliases) |
-| 34 | CP mode | =C-`= toggles persistent vterm split cd'd into current =~/cp/= problem dir (only re-cd's when project changes so run.sh survives); =dt/cp-open= opens main file full-frame |
-| 35 | Vault tools | =C-c v p= consult-find, =C-c v n= new note, =C-c v g= grep vault, =C-c v r= random note, =C-c v l= insert =[[]]= wiki link (md buffers) |
-| 36 | Editing defaults | global-auto-revert; electric-pair; tab-width 2; trailing whitespace shown + stripped on save |
-| 37 | Markdown evil | TAB cycle, backtab, gx follow |
-| 38 | Consult/Embark | =C-c r= consult-ripgrep; embark =C-.= act / =C-;= dwim / =C-h B= bindings; custom embark file actions 2 = split-below, 3 = split-right; help window auto-focus |
-| 39 | Scrolling | =C-d/C-u= half-page scroll keeping cursor centered |
-| 40 | evil-mc | multi-cursors global |
+| Section | What it does |
+|---+---|
+| =package management= | MELPA/MELPA-Stable/GNU/NonGNU archives + auto-refresh, activates packages (loads =compile= first so typst-ts-mode autoloads don't break it) |
+| =dt-essential= | no tool/menu/scroll bars; global line numbers; visual line wrap; hl-line; save-place; XDG hygiene (backups/auto-save/bookmarks/recentf/savehist/custom-file → =~/.cache/emacs= & =~/.local/state/emacs=); no lockfiles; =C-x k= kill buffer; spaces-over-tabs; visible-bell; UTF-8; global-auto-revert; electric-pair; tab-width 2; trailing whitespace stripped |
+| =dt-evil= | evil-mode, evil-surround, which-key, evil-escape "jk" (300ms); =gc= operator + =gcc=; =M-h/j/k/l= drag-stuff; SPC leader map (below); Esc=cancel; =C-x C-a=; =C-d/C-u= centered scroll; `list-bindings` =C-c k=; evil-mc |
+| =dt-completion= | corfu + cape inline completion (auto, preview-insert; C-n/C-p/C-y in insert; cape-file guaranteed; terminal via corfu-terminal); yasnippet + yasnippet-snippets (custom capf backend); vertico, marginalia, orderless; =M-/= completion-at-point |
+| =dt-org= | org GTD (agenda/capture/refile/evil keys); =C-c i c= checkbox, =C-c i t= table, =C-c i= create id; ox-md; Org→PDF (xelatex); pandoc converters =dt/md-to-org=, =dt/org-to-md=, =dt/html-to-org=; =dt/org-refactor-region=, =dt/org-strip-headings= |
+| =dt-ui= | Ubuntu Mono font + font-size, scratch starts in org-mode, splash off; leuven-dark theme; recentf =C-x C-r=; perspective workspaces =C-c w s/k/r=; avy =C-:= and =M-g a l=; =C-= / C--= zoom; help-window-select |
+| =dt-denote= | denote (notes in vault_bank, =C-c d n/r/l/b/d/g=, rename-buffer, dired integration); denote-explore (=C-c e …= network/stats/janitor/random); dir jumps =C-c g v/h/o= |
+| =dt-elfeed= | RSS =C-c e=… mark-all-read/unread + 3 YouTube feeds |
+| =dt-tools= | markdown-mode (evil TAB/gx), vterm; csharp-mode + eglot LSP on .cs; CP layout (=C-`= term split, =dt/cp-open=); consult =C-c r=, embark =C-.= / =C-;= / =C-h B= (2/3 file splits); key-quiz; magit |
+| =dt-typst= | typst-ts-mode + tinymist/eglot; in-emacs PDF preview (right split, auto-revert); yasnippet in typst; =dt/typst-new-exam= |
+| =dt-functions= | web queries =C-c q d/c= (DuckDuckGo/ChatGPT region); replace-whole-buffer-when-no-region advice; vault tools =C-c v p/n/g/r/l= (consult-find/new/grep/random/wiki-link) |
+| =daemon server= | socket name comes from the launcher's =--daemon=<server>= flag (registry); init.el only ensures =(server-start)= runs, so plain GUI launches are servers too |
 
 Leader key map (=SPC=):
 
@@ -405,7 +476,7 @@ Keymaps (default config):
 Note: =lua/plugins/no-bad-nvim.lua#= (trailing =#=) is a stray editor-backup file.
 
 ** =.config/LazyVim/= (second Neovim config)
-*Why:* a full LazyVim distribution kept side-by-side under its own =NVIM_APPNAME=. Reach it three ways: =Alt+N= / =nvims= picker from bash, =nvimlazy= or =lz= alias. Used mainly for competitive programming (the cps system's "n" IDE).
+*Why:* a full LazyVim distribution kept side-by-side under its own =NVIM_APPNAME=. Reach it three ways: =Alt+E= / =editor-switcher= picker from bash, =nvimlazy= or =lz= alias. Used mainly for competitive programming (the cps system's "n" IDE).
 
 Customizations beyond the stock starter:
 - =init.lua= bootstraps lazy.nvim/LazyVim
@@ -429,7 +500,11 @@ Customizations beyond the stock starter:
 - =keymap.json= — Alt+X toggles the command palette
 
 ** =.config/yazi/keymap.toml=
-*Why:* two extra bindings for the yazi file manager: =g o= opens =$PWD= in thunar (GUI), =g k= opens it in kitty.
+*Why:* custom bindings for the yazi file manager. All use the =g= prefix:
+- =g o= opens =$PWD= in thunar (GUI file manager)
+- =g k= opens =$PWD= in a kitty terminal
+- =g e= opens =$PWD= in Emacs (baka config) via =emacsclient= — connects to an existing server if running, or starts one with =--init-directory ~/.config/emacs-profile-baka= on first use
+- =g n= opens =$PWD= in neovim inside a kitty window
 * Scripts (=scripts/= — all on =$PATH= via =~/scripts= symlink)
 
 Most scripts start with a =# @desc= line; that metadata is what the Alt+S runner and Alt+F picker display.
@@ -501,6 +576,9 @@ Menu: Extract Images (png/jpeg/tiff, all/custom pages) / Extract PDF Pages ("1-3
 ** =tst=
 *Why:* debug probe echoing which display server is active ($XDG_SESSION_TYPE, falling back to $WAYLAND_DISPLAY/$DISPLAY).
 
+** =scripts/emacs-app= (+ =emacs-profiles= registry)
+*Why:* the emacs launcher behind =e=, =ep*=, =Alt+E=, and the cps =e= IDE. Reads =~/.config/emacs-profiles= (=label|name|server|init-dir|env= per line), exports the profile's env (e.g. =DOOMDIR=), starts that profile's daemon with =--init-directory= + =--daemon=<server>= when its socket is dead (waits up to 10s, logs to =~/.cache/emacs-<server>.log=, fails loudly with the log path), then runs =emacsclient -s <server> -c=. To add a profile you edit the registry, not this script.
+
 ** Other files here
 - =README.org= — the original detailed script documentation (this section condenses it)
 - =plan-todos.org=, =bugs.org= — planning notes and the pdfdash bug ledger
@@ -516,7 +594,6 @@ Menu: Extract Images (png/jpeg/tiff, all/custom pages) / Extract PDF Pages ("1-3
 * Notes & quirks
 
 - =screenrecord= never sources =p_lib_session.sh= itself; standalone invocation only works if the library functions are already defined (i.e., launched via =record='s wrappers)
-- =cps e= references =$HOME/dotfiles/dt-cp-open.el=, which is absent from the repo
 - =scripts/rand52= writes =answers.txt= (plural) — older docs say =answer.txt=
 - =.config/hypr/ws-click.sh= is currently unwired/vestigial
 - =.config/nvim/lua/plugins/no-bad-nvim.lua#= is a stray editor backup file

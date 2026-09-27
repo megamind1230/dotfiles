@@ -55,22 +55,157 @@ compress() {
 }
 
 # ── nvim switcher ──────────────────────────────────────────────────────────
-# nvim config switcher (journal = default nvim, LazyVim = coding config)
 alias nvimlazy="NVIM_APPNAME=LazyVim nvim"
 alias lz="NVIM_APPNAME=LazyVim nvim"
-# @desc Fzf neovim config switcher
-nvims() {
-  local items=("nvim" "LazyVim" )
-  local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
-  if [[ -z "$config" ]]; then
-    echo "Nothing selected"
-    return 0
-  elif [[ "$config" == "nvim" ]]; then
-    config=""
-  fi
-  NVIM_APPNAME="$config" nvim "$@"
+# --- old nvim switcher (replaced by editor-switcher) ---
+# nvims() {
+#   local items=("nvim" "LazyVim" )
+#   local config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
+#   if [[ -z "$config" ]]; then
+#     echo "Nothing selected"
+#     return 0
+#   elif [[ "$config" == "nvim" ]]; then
+#     config=""
+#   fi
+#   NVIM_APPNAME="$config" nvim "$@"
+# }
+# bind -x '"\eN":nvims'
+
+# ── emacs profiles ───────────────────────────────────────────────────────────
+# Single source of truth: ~/.config/emacs-profiles (-> ~/dotfiles/emacs-profiles)
+# Format per line: label|name|server|init-dir|env
+# To add a profile: append one line there. Nothing else needs editing.
+# @desc Look up an emacs profile in the registry
+emacs-profile-entry() {
+  local want="$1" reg="${EMACS_PROFILES_FILE:-$HOME/.config/emacs-profiles}"
+  local label name server dir envs
+  while IFS='|' read -r label name server dir envs; do
+    [[ "$label" =~ ^[[:space:]]*#.*$ || -z "$name" ]] && continue
+    if [[ "$name" == "$want" ]]; then
+      dir="${dir//\$HOME/$HOME}"; envs="${envs//\$HOME/$HOME}"
+      printf '%s|%s|%s|%s|%s\n' "$label" "$name" "$server" "$dir" "$envs"
+      return 0
+    fi
+  done < "$reg"
+  echo "emacs-profile: unknown profile '$want' (see $reg)" >&2
+  return 1
 }
-bind -x '"\eN":nvims'
+
+# @desc Launch an emacs profile (starts its daemon if needed)
+emacs-profile() { ~/scripts/emacs-app "$@"; }
+
+# @desc Launch default Emacs profile (baka)
+ep()        { emacs-profile baka "$@"; }
+
+# @desc Launch Doom Emacs profile
+ep-doom()   { emacs-profile doom "$@"; }
+
+# @desc Launch Vanilla Emacs profile
+ep-vanilla(){ emacs-profile vanilla "$@"; }
+
+# @desc Start one emacs daemon by profile name (no client window)
+emacs-daemon-start() {
+  local entry
+  entry=$(emacs-profile-entry "${1:-baka}") || return 1
+  local label pname server dir envs
+  IFS='|' read -r label pname server dir envs <<< "$entry"
+  if [[ -n "$envs" ]]; then
+    # shellcheck disable=SC2163
+    export $envs
+  fi
+  emacsclient -s "$server" -e t &>/dev/null && { echo "$server: already running"; return 0; }
+  local log="$HOME/.cache/emacs-$server.log"
+  mkdir -p "$HOME/.cache"
+  if [ -n "$dir" ]; then
+    /usr/bin/emacs --init-directory "$dir" --daemon="$server" >>"$log" 2>&1 &
+  else
+    /usr/bin/emacs --daemon="$server" >>"$log" 2>&1 &
+  fi
+  local i
+  for i in $(seq 1 100); do
+    emacsclient -s "$server" -e t &>/dev/null && { echo "$server: started"; return 0; }
+    sleep 0.1
+  done
+  echo "$server: FAILED (see $log)" >&2
+  return 1
+}
+
+# @desc Start any emacs daemon that isn't already running (safe to repeat)
+ed() {
+  local reg="${EMACS_PROFILES_FILE:-$HOME/.config/emacs-profiles}"
+  local label name server dir envs
+  while IFS='|' read -r label name server dir envs; do
+    [[ "$label" =~ ^[[:space:]]*#.*$ || -z "$name" ]] && continue
+    emacs-daemon-start "$name"
+  done < "$reg"
+}
+
+# @desc Force-restart every emacs daemon (kills open frames)
+emacs-daemons-restart() {
+  local reg="${EMACS_PROFILES_FILE:-$HOME/.config/emacs-profiles}"
+  local label name server dir envs
+  while IFS='|' read -r label name server dir envs; do
+    [[ "$label" =~ ^[[:space:]]*#.*$ || -z "$name" ]] && continue
+    emacsclient -s "$server" -e "(server-force-delete)" 2>/dev/null
+  done < "$reg"
+  pkill -f "[e]macs.*--daemon" 2>/dev/null
+  sleep 0.5
+  ed
+}
+
+# @desc Show status of all emacs daemons
+es() {
+  local reg="${EMACS_PROFILES_FILE:-$HOME/.config/emacs-profiles}"
+  local label name server dir envs
+  while IFS='|' read -r label name server dir envs; do
+    [[ "$label" =~ ^[[:space:]]*#.*$ || -z "$name" ]] && continue
+    if emacsclient -s "$server" -e t &>/dev/null; then
+      echo "$name ($server): running"
+    else
+      echo "$name ($server): DOWN"
+    fi
+  done < "$reg"
+  ls -l "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/emacs" 2>/dev/null
+}
+
+# ── editor switcher ──────────────────────────────────────────────────────────
+# Unified fzf picker for neovim and emacs configs.
+# nvim entries are literal below; emacs entries come from the registry
+# (~/.config/emacs-profiles). To add a profile, append one line there.
+# @desc Fuzzy pick an editor and config, then launch it
+editor-switcher() {
+  local reg="${EMACS_PROFILES_FILE:-$HOME/.config/emacs-profiles}"
+  local entry
+  entry=$({
+    printf 'nvim|my nvim|\n'
+    printf 'nvim|LazyVim|LazyVim\n'
+    local label name server dir envs
+    while IFS='|' read -r label name server dir envs; do
+      [[ "$label" =~ ^[[:space:]]*#.*$ || -z "$name" ]] && continue
+      printf 'emacs|%s|%s\n' "$label" "$name"
+    done < "$reg"
+  } | fzf --prompt="Editor > " \
+          --height=40% \
+          --layout=reverse \
+          --border \
+          --exit-0 --delimiter='|' --with-nth=1,2) \
+    || return 0
+
+  local type="${entry%%|*}"
+  local rest="${entry#*|}"
+  local label="${rest%%|*}"
+  local key="${rest#*|}"
+
+  # emacs clients are GUI windows: launch them in their own session so the
+  # terminal is free immediately (setsid -f returns at once, no tty, no job).
+  # stderr is the only way to see a failed launch, so it goes to a log.
+  case "$type" in
+    nvim)   NVIM_APPNAME="$key" nvim "$@" ;;
+    emacs)  setsid -f ~/scripts/emacs-app "$key" "$@" \
+              </dev/null >/dev/null 2>"$HOME/.cache/editor-switcher.log" ;;
+  esac
+}
+bind -x '"\eE":editor-switcher'
 
 # @desc Fzf pick and run scripts from ~/scripts/
 scriptsRun() {
@@ -352,13 +487,7 @@ cps() {
 
     case "$ide" in
         n) NVIM_APPNAME=LazyVim nvim --cmd "cd $dir" -c "lua require('competition').open('$dir','$mainfile')" ;;
-        e)
-            if timeout 2 emacsclient -e t &>/dev/null; then
-                emacsclient -c -n --eval "(unless (fboundp 'dt/cp-open) (load-file \"$HOME/dotfiles/dt-cp-open.el\")) (dt/cp-open \"$dir\" \"$mainfile\")"
-            else
-                emacs --eval "(dt/cp-open \"$dir\" \"$mainfile\")" &
-            fi
-            ;;
+        e) ~/scripts/emacs-app baka -n --eval "(dt/cp-open \"$dir\" \"$mainfile\")" ;;
         h) helix -w "$dir" "$dir/$mainfile" ;;
         v) code "$dir" ;;
         z) zed -n "$dir" & ;;

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: async method
+# key: async
+# --
+public async ${1:Task} ${2:MethodName}(${3:params}) {
+    $0
+}

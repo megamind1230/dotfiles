@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: get-only property
+# key: propg
+# --
+public ${1:Type} ${2:Name} { get; }

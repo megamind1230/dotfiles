@@ -1,7 +1,9 @@
 -- Hyprland Lua config
 
+-- local terminal = "ghostty"
 local terminal = "kitty"
-local fileManager = "thunar"
+-- local terminal = "konsole"
+-- local fileManager = "thunar"
 local menu = "rofi -show drun"
 -- local browser = "brave"
 local browser = "helium-browser"
@@ -32,7 +34,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("kwalletd6")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
-    hl.exec_cmd("emacs --daemon")
+    hl.exec_cmd("bash -c 'source ~/.bashrc-functions && ed'")
     hl.exec_cmd("xdg-mime default gwenview.desktop image/png")
     hl.exec_cmd("xdg-mime default gwenview.desktop image/jpeg")
 end)
@@ -144,9 +146,12 @@ hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 hl.bind(mainMod .. " + return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + Q",       hl.dsp.window.close())
 hl.bind(mainMod .. " + W",       hl.dsp.exec_cmd(browser))
-hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
+-- hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd("kitty yazi"))
 hl.bind(mainMod .. " + R",       hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + Z",       hl.dsp.exec_cmd("emacsclient -c"))
+hl.bind(mainMod .. " + Z",       hl.dsp.exec_cmd("emacsclient -s emacs-profile-baka -c"))
+hl.bind(mainMod .. " + SHIFT + Z",       hl.dsp.exec_cmd("emacsclient -s emacs-doom -c"))
+hl.bind(mainMod .. " + ALT + Z",       hl.dsp.exec_cmd("emacsclient -s server -c"))
 -- hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd("zed"))
 hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd("zed"))
 hl.bind(mainMod .. " + O",       hl.dsp.exec_cmd("obsidian"))
@@ -234,7 +239,7 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("/home/dt/scripts/emote"))
 ------------------------------
 -- App workspace assignments
 hl.window_rule({ match = { class = "^(steam)$" },             workspace = "1" })
-hl.window_rule({ match = { class = "^(firefox)$" },        workspace = "2" }) 
+hl.window_rule({ match = { class = "^(firefox)$" },        workspace = "2" })
 hl.window_rule({ match = { class = "^(helium)$" },   workspace = "2" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.ksecretd)$" }, workspace = "2" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.okular)$" }, workspace = "4" })
@@ -242,19 +247,21 @@ hl.window_rule({ match = { class = "^(gimp)$" },              workspace = "5" })
 hl.window_rule({ match = { class = "^(org\\.kde\\.kdenlive)$" },          workspace = "5" })
 hl.window_rule({ match = { class = "^(lmms\\.real)$" },          workspace = "5" })
 hl.window_rule({ match = { class = "^(com\\.github\\.maoschanz\\.drawing)$" },          workspace = "5" })
-hl.window_rule({ match = { class = "^(obsidian)$" },       workspace = "9" }) 
+hl.window_rule({ match = { class = "^(obsidian)$" },       workspace = "9" })
 hl.window_rule({ match = { class = "^(ZenNotes)$" },          workspace = "9" })
-hl.window_rule({ match = { class = "^(discord)$" },        workspace = "10" }) 
-hl.window_rule({ match = { class = "^(slack)$" },        workspace = "10" }) 
+hl.window_rule({ match = { class = "^(discord)$" },        workspace = "10" })
+hl.window_rule({ match = { class = "^(slack)$" },        workspace = "10" })
 hl.window_rule({ match = { class = "^(org\\.telegram\\.desktop)$" }, workspace = "10" })
-hl.window_rule({ match = { class = "^(Emacs)$" },        workspace = "special:pad" }) 
-hl.window_rule({ match = { class = "^(mouseless-kanban)$" },        workspace = "special:pad" }) 
+hl.window_rule({ match = { class = "^(Emacs)$" },        workspace = "special:pad" })
+hl.window_rule({ match = { class = "^(mouseless-kanban)$" },        workspace = "special:pad" })
 
 -- mouseless-kanban
 hl.bind(mainMod .. " + ALT + K",     hl.dsp.exec_cmd("/home/dt/dev/mouseless-kanban/scripts/run.sh"))
 
 
 hl.window_rule({ match = { class = "Emacs" }, opacity = "0.80 override 0.80 override", })
+hl.window_rule({ match = { class = "^(org\\.kde\\.konsole)$" }, opacity = "0.80 override 0.80 override", })
+hl.window_rule({ match = { class = "^(com\\.mitchellh\\.ghostty)$" }, opacity = "0.80 override 0.80 override", })
 hl.window_rule({ match = { class = "xdg-desktop-portal-gtk" }, size = {"(monitor_w*0.8)", "(monitor_h*0.8)"}, center = true,  })
 
 

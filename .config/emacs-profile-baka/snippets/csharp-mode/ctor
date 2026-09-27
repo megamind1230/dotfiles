@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: constructor
+# key: ctor
+# --
+public ${1:`(file-name-nondirectory (file-name-sans-extension (buffer-file-name)))`}(${2:params}) {
+    $0
+}

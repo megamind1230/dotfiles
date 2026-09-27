@@ -1,0 +1,13 @@
+[mgr]
+ratio          = [ 1, 4, 4 ]
+sort_by        = "alphabetical"
+sort_sensitive = false
+sort_reverse 	 = false
+sort_dir_first = false
+# sort_translit  = false
+sort_fallback  = "alphabetical"
+linemode       = "none"
+show_hidden    = false
+show_symlink   = true
+scrolloff      = 0
+mouse_events   = [ "click", "scroll", "drag" ]

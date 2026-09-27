@@ -1,0 +1,12 @@
+# emacs profiles — single source of truth
+# Read by: scripts/emacs-app, ed/emacs-daemon-start/emacs-daemons-restart/es in .bashrc-functions
+# Format per line: label|name|server|init-dir|env
+#   label = friendly name shown in the editor-switcher fzf picker
+#   name  = profile key used on the command line (emacs-profile NAME)
+#   server = emacsclient socket name
+#   init-dir = user-emacs-directory passed via --init-directory (empty = bare emacs)
+#   env   = KEY=VALUE pairs, space separated (set before daemon starts)
+# "$HOME" is expanded when the line is parsed.
+my emacs|baka|emacs-profile-baka|$HOME/.config/emacs-profile-baka|
+doom|doom|emacs-doom|$HOME/.config/emacs-doom/emacs|DOOMDIR=$HOME/.config/emacs-doom/doom
+vanilla|vanilla|server|$HOME/.config/emacs-profile-vanilla|

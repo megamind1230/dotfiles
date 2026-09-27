@@ -1,10 +1,37 @@
 [[mgr.prepend_keymap]]
 on = [ "g", "o" ]
 run = 'shell "thunar $PWD" --orphan'
-desc = "Open current directory in Thunar"
-
+desc = "open pwd in thunar"
 
 [[mgr.prepend_keymap]]
 on = [ "g", "k" ]
 run = 'shell "kitty $PWD" --orphan'
-desc = "Open current directory in Kitty"
+desc = "open pwd in kitty"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "e" ]
+run = 'shell --orphan -- emacsclient -s emacs-profile-baka -c -a "/usr/bin/emacs --init-directory $HOME/.config/emacs-profile-baka --daemon" $PWD'
+desc = "open pwd in emacs baka"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "n" ]
+run = 'shell "kitty nvim $PWD" --orphan'
+desc = "open pwd in neovim"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "1" ]
+run = "cd /mnt/hdd/hcoreExtend/books/students-26-27/"
+desc = "go students"
+for = "unix"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "p" ]
+run = "cd ~/Pictures/"
+desc = "go to pictures"
+for = "unix"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "2" ]
+run = "cd ~/test/"
+desc = "go to test"
+for = "unix"

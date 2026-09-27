@@ -1,6 +1,7 @@
 # ── variables ──────────────────────────────────────────────────────────────
 # choices
-my_active_nvim="nvim"
+# my_active_nvim="nvim"
+my_active_nvim="emacsclient -s emacs-profile-baka -c"
 # alias nvim='my_active_nvim'
 # alias vim='$my_active_nvim'
 # alias vi='$my_active_nvim'
@@ -131,8 +132,9 @@ alias sb='source ~/.bashrc'
 
 ## faster
 # alias date="date +'%d-%m-%Y %a @ %r'"
-alias e='emacsclient -c -a ""'
-alias ed='emacs --daemon'
+alias e='emacs-profile baka'
+alias emacs='emacs-profile baka'
+# emacs daemons: ed / emacs-daemon-start / emacs-daemons-restart / es live in .bashrc-functions
 alias y='yazi'
 alias oc='opencode'
 
